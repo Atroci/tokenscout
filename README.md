@@ -166,7 +166,7 @@ package that drives a headless browser. Full detail in
       instrumentation of JS-driven motion (research tier)
 
 **Release:**
-- [ ] Publish core to npm (`0.1.x`)
+- [x] Publish core to npm (`0.1.x`), live: https://www.npmjs.com/package/tokenscout
 
 ## Contributing
 
