@@ -1,3 +1,5 @@
+English | [Português (Brasil)](./README.pt-BR.md)
+
 # tokenscout
 
 [![npm version](https://img.shields.io/npm/v/tokenscout.svg)](https://www.npmjs.com/package/tokenscout)
@@ -73,9 +75,9 @@ Two-package shape — a zero-dependency **core** (pure token math) and an
 **Core (`tokenscout`, zero deps):**
 - [x] Color — parse, sRGB→Lab, ΔE76, perceptual clustering
 - [x] Tests + CI
-- [ ] Type scale reducer
-- [ ] Spacing scale reducer
-- [ ] `design-tokens.json` (W3C DTCG) export
+- [x] Type scale reducer
+- [x] Spacing scale reducer
+- [x] `design-tokens.json` (W3C DTCG) export
 
 **Extract (`@tokenscout/extract`, Playwright peer):**
 - [ ] Live crawl + computed-style extraction at breakpoints

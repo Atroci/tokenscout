@@ -28,10 +28,11 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package split and data contract
 ### ✅ Phase 1 — Color core (v0.1.0, shipped)
 Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-dep.
 
-### Phase 2 — Token reducers (core)
-- [ ] Type scale reducer (cluster font-size/line-height/weight observations)
-- [ ] Spacing scale reducer (margin/padding/gap quantization)
-- [ ] `assembleTokens()` → `design-tokens.json` in **W3C DTCG** format
+### ✅ Phase 2 — Token reducers (core, shipped)
+- [x] Type scale reducer (parse → sort/dedupe + modular-ratio detection)
+- [x] Spacing scale reducer (parse → GCD base-grid → quantize)
+- [x] `assembleTokens()` → `design-tokens.json` in **W3C DTCG** format
+- [x] `schema.ts` boundary contract (`PageExtract`, `DesignTokens`)
 
 ### Phase 3 — Extraction (`@tokenscout/extract`)
 - [ ] Sitemap / link crawl (discover top-N pages)
