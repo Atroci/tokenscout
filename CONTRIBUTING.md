@@ -27,7 +27,7 @@ npm run build       # tsc -> dist/
 ## Pull request process
 
 1. Fork and branch from `main`.
-2. Make your change. Keep it surgical — don't reformat unrelated code.
+2. Make your change. Keep it surgical: don't reformat unrelated code.
 3. Ensure `npm run typecheck` and `npm run build` pass.
 4. Use [Conventional Commits](https://www.conventionalcommits.org/) for the PR
    title (e.g. `feat: add deltaE2000`, `fix: clamp Lab L*`).
@@ -52,7 +52,7 @@ cloned there is ever committed into tokenscout.
 ## Reporting bugs / requesting features
 
 Use the issue templates. For color-math bugs, please include the input value(s)
-and the expected vs actual output — it makes reproduction trivial.
+and the expected vs actual output. It makes reproduction trivial.
 
 ## Code of Conduct
 

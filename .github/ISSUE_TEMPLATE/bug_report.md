@@ -12,7 +12,7 @@ assignees: ""
 
 ## Reproduction
 
-<!-- For color-math issues, the exact input(s) make this trivial. -->
+<!-- For color-math issues, include the exact input(s). -->
 
 ```ts
 import { parseColor } from "tokenscout/color";

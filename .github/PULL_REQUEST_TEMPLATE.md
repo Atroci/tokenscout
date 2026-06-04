@@ -10,6 +10,6 @@
 
 - [ ] `npm run typecheck` passes
 - [ ] `npm run build` passes
-- [ ] **No new runtime dependencies** (`dependencies` in package.json unchanged)
+- [ ] No new runtime dependencies (`dependencies` in package.json unchanged)
 - [ ] Updated `CHANGELOG.md` under `## [Unreleased]`
 - [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)

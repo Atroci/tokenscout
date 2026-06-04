@@ -6,22 +6,22 @@ English | [Português (Brasil)](./README.pt-BR.md)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
 
-Extract **design tokens from a live, rendered website** — not from a CSS file,
-not from a Figma export, but from a real page as a browser actually paints it.
+Extract design tokens from a live, rendered website. Not from a CSS file or a
+Figma export, but from a real page as a browser actually paints it.
 
 Most design-token tooling starts from source CSS or a design file. tokenscout
 starts from the rendered result: it reads computed styles off live pages and
-reduces them to a clean token set — a perceptually-deduplicated color palette,
-type scale, and spacing scale.
+reduces them to a clean token set (a perceptually-deduplicated color palette,
+type scale, and spacing scale).
 
-**The epic:** point tokenscout at a live URL and get back a faithful, reusable
-design-token set — palette, type scale, spacing scale, **and motion** — plus the
-site's image assets, ready to seed a redesign. Source-agnostic: it reads what the
-browser actually paints, so it works on any stack, framework, or no framework.
+Point tokenscout at a live URL and get back a faithful, reusable design-token
+set (palette, type scale, spacing scale, and motion) plus the site's image
+assets, ready to seed a redesign. It reads what the browser actually paints, so
+it works on any stack, framework, or no framework.
 
-> Status: **v0.1.0 — open core.** Shipped: the zero-dependency **color** layer
+> Status: v0.1.0, open core. Shipped: the zero-dependency color layer
 > (parse · sRGB→Lab · ΔE76 · perceptual clustering), fully tested. Next: the
-> live-site **extraction** layer (computed styles, asset harvesting, animation
+> live-site extraction layer (computed styles, asset harvesting, animation
 > capture) and the type/spacing reducers. See [ROADMAP.md](./ROADMAP.md) and
 > [ARCHITECTURE.md](./ARCHITECTURE.md).
 
@@ -29,9 +29,9 @@ browser actually paints, so it works on any stack, framework, or no framework.
 
 - **Live, not source.** What ships to a user's screen ≠ what's in the
   stylesheet (cascades, overrides, third-party widgets, runtime theming).
-- **Perceptual, not syntactic.** `#3a7bd5`, `#3b7cd6`, and `rgb(58,123,213)`
-  are three strings but one color. tokenscout clusters them in **CIELAB** by
-  **ΔE76**, so "47 declared colors → 9 real ones" falls out for free.
+- **Perceptual clustering.** `#3a7bd5`, `#3b7cd6`, and `rgb(58,123,213)`
+  are three strings but one color. tokenscout clusters them in CIELAB by
+  ΔE76, turning "47 declared colors → 9 real ones".
 - **Zero runtime dependencies.** The color math is ~120 lines of pure
   TypeScript (sRGB→Lab, ΔE76, single-linkage union-find). No native deps.
 
@@ -68,12 +68,12 @@ Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
 
 ## Roadmap
 
-Two-package shape — a zero-dependency **core** (pure token math) and an
-**extract** package that drives a headless browser. Full detail in
+Two-package shape: a zero-dependency core (pure token math) and an extract
+package that drives a headless browser. Full detail in
 [ROADMAP.md](./ROADMAP.md); design in [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 **Core (`tokenscout`, zero deps):**
-- [x] Color — parse, sRGB→Lab, ΔE76, perceptual clustering
+- [x] Color: parse, sRGB→Lab, ΔE76, perceptual clustering
 - [x] Tests + CI
 - [x] Type scale reducer
 - [x] Spacing scale reducer
@@ -82,7 +82,7 @@ Two-package shape — a zero-dependency **core** (pure token math) and an
 **Extract (`@tokenscout/extract`, Playwright peer):**
 - [ ] Live crawl + computed-style extraction at breakpoints
 - [ ] Image / asset harvesting (manifest + files, for redesign migration)
-- [ ] Animation capture — CSS `@keyframes`/transition tokens + Lottie download
+- [ ] Animation capture: CSS `@keyframes`/transition tokens + Lottie download
       + library detection + motion-reference video, up to runtime WAAPI/rAF
       instrumentation of JS-driven motion (research tier)
 
@@ -91,7 +91,7 @@ Two-package shape — a zero-dependency **core** (pure token math) and an
 
 ## Contributing
 
-Issues and PRs welcome — especially around color science, CSS value parsing,
+Issues and PRs welcome, especially around color science, CSS value parsing,
 and token-scale heuristics. This is an open-core project; the synthesis and
 reporting layers on top of it are separate.
 
