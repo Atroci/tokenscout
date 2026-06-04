@@ -1,20 +1,111 @@
 {
   "color": {
-    "color-1": {
-      "$value": "#ffffff",
-      "$type": "color"
+    "white-0z2ixva": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          1,
+          1,
+          1
+        ],
+        "alpha": 1
+      },
+      "$type": "color",
+      "$extensions": {
+        "com.tokenscout.css-authored-as": "#ffffff",
+        "com.tokenscout.usage-count": 97,
+        "com.tokenscout.css-properties": [
+          "background-color",
+          "color"
+        ],
+        "com.tokenscout.member-count": 2,
+        "com.tokenscout.members": [
+          "#fefefe",
+          "#ffffff"
+        ]
+      }
     },
-    "color-2": {
-      "$value": "#111827",
-      "$type": "color"
+    "black-0ugpfk2": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.06667,
+          0.09412,
+          0.15294
+        ],
+        "alpha": 1
+      },
+      "$type": "color",
+      "$extensions": {
+        "com.tokenscout.css-authored-as": "#111827",
+        "com.tokenscout.usage-count": 61,
+        "com.tokenscout.css-properties": [
+          "color"
+        ],
+        "com.tokenscout.member-count": 1,
+        "com.tokenscout.members": [
+          "#111827"
+        ]
+      }
     },
-    "color-3": {
-      "$value": "#3a7bd5",
-      "$type": "color"
+    "cornflowerblue-17rhtps": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.22745,
+          0.48235,
+          0.83529
+        ],
+        "alpha": 1
+      },
+      "$type": "color",
+      "$extensions": {
+        "com.tokenscout.css-authored-as": "#3a7bd5",
+        "com.tokenscout.usage-count": 50,
+        "com.tokenscout.css-properties": [
+          "background-color",
+          "border-color",
+          "color"
+        ],
+        "com.tokenscout.member-count": 4,
+        "com.tokenscout.members": [
+          "#3A7BD4",
+          "#3a7bd5",
+          "#3b7cd6",
+          "rgb(58, 123, 213)"
+        ]
+      }
     },
-    "color-4": {
-      "$value": "#e23744",
-      "$type": "color"
+    "crimson-09p9vbj": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.88627,
+          0.21569,
+          0.26667
+        ],
+        "alpha": 1
+      },
+      "$type": "color",
+      "$extensions": {
+        "com.tokenscout.css-authored-as": "#e23744",
+        "com.tokenscout.usage-count": 16,
+        "com.tokenscout.css-properties": [
+          "background-color",
+          "color"
+        ],
+        "com.tokenscout.member-count": 2,
+        "com.tokenscout.members": [
+          "#e13643",
+          "#e23744"
+        ]
+      }
+    },
+    "$extensions": {
+      "com.tokenscout.analyzable": 9,
+      "com.tokenscout.unanalyzable": 0,
+      "com.tokenscout.distinct": 4,
+      "com.tokenscout.sprawl-ratio": 2.25
     }
   },
   "fontSize": {

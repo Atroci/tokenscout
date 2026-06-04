@@ -32,18 +32,77 @@ test("assembleTokens: emits a DTCG group per domain", () => {
   assert.deepEqual(Object.keys(tokens), ["color", "fontSize", "spacing"]);
 });
 
-test("assembleTokens: colors clustered, keyed by totalCount desc", () => {
+interface ColorToken {
+  $value: { colorSpace: string; components: number[]; alpha: number };
+  $type: string;
+  $extensions: Record<string, unknown>;
+}
+
+// Per DTCG, `$`-prefixed members (e.g. group-level `$extensions`) are reserved
+// metadata, not tokens. Counting tokens skips them.
+const tokenEntries = <T>(g: Record<string, T>): [string, T][] =>
+  Object.entries(g).filter(([k]) => !k.startsWith("$"));
+const tokenKeys = (g: Record<string, unknown>): string[] =>
+  Object.keys(g).filter((k) => !k.startsWith("$"));
+const tokenValues = <T>(g: Record<string, T>): T[] =>
+  tokenEntries(g).map(([, v]) => v);
+
+test("assembleTokens: colors clustered, ordered by usage-count desc", () => {
   const tokens = assembleTokens(pages);
-  const color = tokens.color as Record<
-    string,
-    { $value: string; $type: string }
-  >;
+  const color = tokens.color as Record<string, ColorToken>;
   // Blue trio merges into one cluster; red into another -> two color tokens.
-  assert.deepEqual(Object.keys(color), ["color-1", "color-2"]);
-  // Highest total (blue 40+5+2=47) ranks first; its canonical is the top member.
-  assert.equal(color["color-1"].$value, "#3a7bd5");
-  assert.equal(color["color-1"].$type, "color");
-  assert.equal(color["color-2"].$value, "#e23744");
+  // Keys are content-hashed, not positional, so assert on count + order.
+  const entries = tokenEntries(color);
+  assert.equal(entries.length, 2);
+
+  // Insertion order is cluster order (totalCount desc): blue first, red second.
+  const [, blue] = entries[0];
+  const [, red] = entries[1];
+
+  // Blue ranks first (40+5+2=47 > red 12+3=15).
+  assert.equal(blue.$extensions["com.tokenscout.usage-count"], 47);
+  assert.equal(red.$extensions["com.tokenscout.usage-count"], 15);
+
+  // $value is a DTCG structured color, not a raw string.
+  assert.equal(blue.$value.colorSpace, "srgb");
+  assert.equal(blue.$value.alpha, 1);
+  assert.equal(blue.$type, "color");
+  assert.equal(blue.$value.components.length, 3);
+
+  // Components round-trip to the canonical "#3a7bd5".
+  const [r, g, b] = blue.$value.components;
+  assert.ok(Math.abs(r - 0x3a / 255) < 1e-4, `r ${r}`);
+  assert.ok(Math.abs(g - 0x7b / 255) < 1e-4, `g ${g}`);
+  assert.ok(Math.abs(b - 0xd5 / 255) < 1e-4, `b ${b}`);
+  assert.equal(Math.round(r * 255), 0x3a);
+  assert.equal(Math.round(g * 255), 0x7b);
+  assert.equal(Math.round(b * 255), 0xd5);
+});
+
+test("assembleTokens: color token carries DTCG $extensions metadata", () => {
+  const tokens = assembleTokens(pages);
+  const color = tokens.color as Record<string, ColorToken>;
+  const [key, blue] = tokenEntries(color)[0];
+
+  // Stable id: nearest-name + "-" + 7-char hash.
+  assert.match(key, /^[a-z]+-[0-9a-z]{7}$/);
+
+  const ext = blue.$extensions;
+  assert.equal(ext["com.tokenscout.css-authored-as"], "#3a7bd5");
+  // usage-count is the summed cluster count (blue 40+5+2 = 47).
+  assert.equal(ext["com.tokenscout.usage-count"], 47);
+  // css-properties is a sorted array of the member roles.
+  assert.deepEqual(ext["com.tokenscout.css-properties"], [
+    "background-color",
+    "border-color",
+    "color",
+  ]);
+  assert.equal(ext["com.tokenscout.member-count"], 3);
+  assert.deepEqual(ext["com.tokenscout.members"], [
+    "#3a7bd5",
+    "#3b7cd6",
+    "rgb(58, 123, 213)",
+  ]);
 });
 
 test("assembleTokens: font sizes ascending dimension tokens (rem via rootPx)", () => {
@@ -131,18 +190,54 @@ test("assembleTokens: a fully transparent paint never becomes a color token", ()
     },
   ];
   const tokens = assembleTokens(withTransparent);
-  const color = tokens.color as Record<string, { $value: string }>;
-  assert.deepEqual(Object.keys(color), ["color-1"]);
-  assert.equal(color["color-1"].$value, "#e23744");
+  const color = tokens.color as Record<string, ColorToken>;
+  // Only the opaque red survives; the transparent paint produces no token.
+  assert.equal(tokenKeys(color).length, 1);
+  const [, only] = tokenEntries(color)[0];
+  assert.equal(only.$extensions["com.tokenscout.css-authored-as"], "#e23744");
 });
 
-test("assembleTokens: drops unparseable colors (hsl/oklch not yet supported)", () => {
-  const messy: PageExtract[] = [
+test("assembleTokens: hsl() colors are now parsed into a token", () => {
+  const withHsl: PageExtract[] = [
     {
       url: "https://example.com/",
       breakpoint: 1280,
       colors: [
         { value: "hsl(210, 50%, 50%)", role: "color", count: 9 },
+        { value: "#e23744", role: "background-color", count: 4 },
+      ],
+      type: { sizes: [] },
+      spacing: { values: [] },
+    },
+  ];
+  const tokens = assembleTokens(withHsl);
+  const color = tokens.color as Record<string, ColorToken>;
+  // Both the hsl() blue and the hex red yield tokens (distinct hues).
+  assert.equal(tokenKeys(color).length, 2);
+  // The hsl() value is preserved verbatim in css-authored-as.
+  const authored = tokenValues(color).map(
+    (t) => t.$extensions["com.tokenscout.css-authored-as"],
+  );
+  assert.ok(authored.includes("hsl(210, 50%, 50%)"));
+  // hsl(210,50%,50%) -> sRGB ~ (0.25, 0.5, 0.75).
+  const blue = tokenValues(color).find(
+    (t) =>
+      t.$extensions["com.tokenscout.css-authored-as"] === "hsl(210, 50%, 50%)",
+  )!;
+  const [r, g, b] = blue.$value.components;
+  assert.ok(Math.abs(r - 0.25) < 1e-3, `r ${r}`);
+  assert.ok(Math.abs(g - 0.5) < 1e-3, `g ${g}`);
+  assert.ok(Math.abs(b - 0.75) < 1e-3, `b ${b}`);
+});
+
+test("assembleTokens: still drops oklch()/lab() unsupported colors", () => {
+  const messy: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [
+        { value: "oklch(0.7 0.1 200)", role: "color", count: 9 },
+        { value: "lab(50% 40 59.5)", role: "color", count: 7 },
         { value: "#e23744", role: "color", count: 4 },
       ],
       type: { sizes: [] },
@@ -150,9 +245,47 @@ test("assembleTokens: drops unparseable colors (hsl/oklch not yet supported)", (
     },
   ];
   const tokens = assembleTokens(messy);
-  const color = tokens.color as Record<string, { $value: string }>;
-  assert.deepEqual(Object.keys(color), ["color-1"]);
-  assert.equal(color["color-1"].$value, "#e23744");
+  const color = tokens.color as Record<string, ColorToken>;
+  // Only the hex red parses; oklch()/lab() fall through to null and are dropped.
+  assert.equal(tokenKeys(color).length, 1);
+  const [, only] = tokenEntries(color)[0];
+  assert.equal(only.$extensions["com.tokenscout.css-authored-as"], "#e23744");
+});
+
+test("assembleTokens: color group carries sprawl audit metrics in $extensions", () => {
+  const tokens = assembleTokens(pages);
+  const ext = (tokens.color as Record<string, unknown>)[
+    "$extensions"
+  ] as Record<string, number>;
+  // 4 distinct analyzable strings (#3a7bd5, #3b7cd6, rgb(58,123,213), #e23744;
+  // the second page's #e23744 dedupes) collapse to 2 perceptual clusters.
+  assert.equal(ext["com.tokenscout.analyzable"], 4);
+  assert.equal(ext["com.tokenscout.unanalyzable"], 0);
+  assert.equal(ext["com.tokenscout.distinct"], 2);
+  assert.equal(ext["com.tokenscout.sprawl-ratio"], 2);
+});
+
+test("assembleTokens: sprawl metrics count unparseable colors as unanalyzable", () => {
+  const messy: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [
+        { value: "oklch(0.7 0.1 200)", role: "color", count: 9 },
+        { value: "lab(50% 40 59.5)", role: "color", count: 7 },
+        { value: "#e23744", role: "color", count: 4 },
+      ],
+      type: { sizes: [] },
+      spacing: { values: [] },
+    },
+  ];
+  const ext = (assembleTokens(messy).color as Record<string, unknown>)[
+    "$extensions"
+  ] as Record<string, number>;
+  assert.equal(ext["com.tokenscout.analyzable"], 1);
+  assert.equal(ext["com.tokenscout.unanalyzable"], 2);
+  assert.equal(ext["com.tokenscout.distinct"], 1);
+  assert.equal(ext["com.tokenscout.sprawl-ratio"], 1);
 });
 
 test("assembleTokens: emits a sorted, deduped DTCG duration group from animations", () => {

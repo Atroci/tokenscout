@@ -7,9 +7,11 @@
 import {
   clusterColors,
   parseColor,
+  nearestNamedColor,
   DEFAULT_DELTA_E,
   type ColorInput,
 } from "../color/index.js";
+import { stableColorId } from "../color/id.js";
 import { reduceTypeScale } from "../type/index.js";
 import { reduceSpacingScale } from "../spacing/index.js";
 import type {
@@ -79,6 +81,11 @@ function buildColorGroup(
   deltaE: number,
 ): TokenGroup | null {
   const inputs: ColorInput[] = [];
+  // Sprawl audit: count DISTINCT authored color strings we could vs. could not
+  // turn into tokens. Honest about tokenscout's OWN parser coverage (hex / rgb /
+  // hsl / named), not colorjs.io's — a color we now parse is no longer a "drop".
+  const analyzableValues = new Set<string>();
+  const unanalyzableValues = new Set<string>();
   for (const page of pages) {
     for (const obs of page.colors) {
       const parsed = parseColor(obs.value);
@@ -86,7 +93,15 @@ function buildColorGroup(
       // since clustering ignores alpha, a high-count transparent value could
       // otherwise win as a cluster's canonical color.
       if (parsed && parsed.alpha > 0) {
-        inputs.push({ value: obs.value, rgb: parsed.rgb, count: obs.count });
+        analyzableValues.add(obs.value);
+        inputs.push({
+          value: obs.value,
+          rgb: parsed.rgb,
+          count: obs.count,
+          role: obs.role,
+        });
+      } else {
+        unanalyzableValues.add(obs.value);
       }
     }
   }
@@ -94,12 +109,42 @@ function buildColorGroup(
 
   const clusters = clusterColors(inputs, deltaE);
   const group: TokenGroup = {};
-  clusters.forEach((cluster, i) => {
-    group[`color-${i + 1}`] = {
-      $value: cluster.canonical,
+  for (const cluster of clusters) {
+    // Canonical came from a parsed input, so it always re-parses; the
+    // non-null assertion documents that invariant.
+    const parsed = parseColor(cluster.canonical)!;
+    const round5 = (n: number) => Math.round(n * 1e5) / 1e5;
+    const [r, g, b] = parsed.rgb;
+    const key = stableColorId(cluster.canonical, nearestNamedColor(parsed.rgb));
+    group[key] = {
+      $value: {
+        colorSpace: "srgb",
+        components: [round5(r), round5(g), round5(b)],
+        alpha: parsed.alpha,
+      },
       $type: "color",
+      $extensions: {
+        "com.tokenscout.css-authored-as": cluster.canonical,
+        "com.tokenscout.usage-count": cluster.totalCount,
+        "com.tokenscout.css-properties": cluster.cssProperties,
+        "com.tokenscout.member-count": cluster.members.length,
+        "com.tokenscout.members": cluster.members,
+      },
     };
-  });
+  }
+
+  // Group-level sprawl metrics (DTCG group `$extensions`). sprawl-ratio =
+  // analyzable distinct strings / perceptual clusters; >1 means near-duplicate
+  // redundancy (e.g. "44 declared -> 9 distinct = 4.89x").
+  const analyzable = analyzableValues.size;
+  const distinct = clusters.length;
+  group.$extensions = {
+    "com.tokenscout.analyzable": analyzable,
+    "com.tokenscout.unanalyzable": unanalyzableValues.size,
+    "com.tokenscout.distinct": distinct,
+    "com.tokenscout.sprawl-ratio":
+      Math.round((analyzable / distinct) * 100) / 100,
+  };
   return group;
 }
 

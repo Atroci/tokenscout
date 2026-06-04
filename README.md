@@ -37,6 +37,10 @@ let `@tokenscout/extract` read them off a live page. Design and status in
   three strings but one color. tokenscout clusters them in CIELAB by ΔE76, so a
   sprawling declared palette collapses to the handful of colors a site really
   uses (the example below: 9 declared to 4 real).
+- **Stable, name-hinted token ids.** Color tokens are keyed by a content hash
+  of the canonical value plus the nearest CSS color name (e.g.
+  `cornflowerblue-17rhtps`), so ids stay put across runs and a token diff
+  reflects real palette change, not list churn.
 - **Zero runtime dependencies.** The color math is ~120 lines of pure
   TypeScript (sRGB→Lab, ΔE76, single-linkage union-find). No native deps.
 
@@ -167,15 +171,34 @@ Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
 ## Results
 
 The example above, run through `assembleTokens`, collapses 9 declared colors
-into 4 real ones and emits clean type and spacing scales:
+into 4 real ones and emits clean type and spacing scales. The `color` group
+records that collapse as an auditable **sprawl metric** in group-level
+`$extensions` (`9 analyzable → 4 distinct = 2.25×`), and each color token has a
+stable, name-hinted id, a DTCG structured `$value`, and `$extensions` metadata
+(what it was authored as, how often it was used, which CSS properties it painted,
+and the raw members that clustered into it):
 
 ```json
 {
   "color": {
-    "color-1": { "$value": "#ffffff", "$type": "color" },
-    "color-2": { "$value": "#111827", "$type": "color" },
-    "color-3": { "$value": "#3a7bd5", "$type": "color" },
-    "color-4": { "$value": "#e23744", "$type": "color" }
+    "$extensions": {
+      "com.tokenscout.analyzable": 9,
+      "com.tokenscout.unanalyzable": 0,
+      "com.tokenscout.distinct": 4,
+      "com.tokenscout.sprawl-ratio": 2.25
+    },
+    "cornflowerblue-17rhtps": {
+      "$value": { "colorSpace": "srgb", "components": [0.22745, 0.48235, 0.83529], "alpha": 1 },
+      "$type": "color",
+      "$extensions": {
+        "com.tokenscout.css-authored-as": "#3a7bd5",
+        "com.tokenscout.usage-count": 50,
+        "com.tokenscout.css-properties": ["background-color", "border-color", "color"],
+        "com.tokenscout.member-count": 4,
+        "com.tokenscout.members": ["#3A7BD4", "#3a7bd5", "#3b7cd6", "rgb(58, 123, 213)"]
+      }
+    }
+    // ... white-0z2ixva, black-0ugpfk2, crimson-09p9vbj elided
   },
   "fontSize": {
     "font-size-1": { "$value": { "value": 16, "unit": "px" }, "$type": "dimension" },
@@ -212,8 +235,9 @@ Honest about the edges, since they affect output:
 - **Motion tokens are durations only (in the DTCG `duration` group).** Easings
   and `@keyframes` names are reported on `inspectSite`'s `animations` field but
   are not yet emitted as DTCG tokens.
-- **Color input is hex and `rgb()`/`rgba()`.** `hsl()`, `oklch()`, named colors,
-  and `color()` are not parsed yet and are dropped.
+- **Color input is hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, and CSS named
+  colors.** `oklch()`, `lab()`/`lch()`, `hwb()`, and `color()` are not parsed
+  yet and are dropped.
 - **Lengths are `px` and `rem` only.** `em`, `%`, `vw`, and keywords are dropped.
 - **Fully transparent paints (alpha 0) are dropped** from color tokens; alpha is
   otherwise not part of the cluster identity, so opaque and semi-transparent
