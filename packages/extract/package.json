@@ -30,12 +30,13 @@
     "directory": "packages/extract"
   },
   "dependencies": {
-    "tokenscout": "^0.1.0"
+    "tokenscout": "^0.2.0"
   },
   "peerDependencies": {
     "playwright": ">=1.40"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "playwright": "^1.60.0"
   },
   "engines": {

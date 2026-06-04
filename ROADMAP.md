@@ -43,8 +43,8 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
 - [x] Image / asset harvesting: walk the rendered DOM (`<img>`, `srcset`,
       `background-image`, video posters, favicons, OG image) and emit a resolved,
       deduplicated asset manifest (`discoverAssets`, `buildAssetManifest`).
-- [ ] Asset download: fetch the manifest entries to disk for the
-      redesign-migration "copy the old site's images" workflow.
+- [x] Asset download: fetch the manifest entries to disk (`downloadAssets`) for
+      the redesign-migration "copy the old site's images" workflow.
 
 ### Phase 4: Animation capture (`@tokenscout/extract`)
 The hard, differentiating layer. Web motion comes from three sources, captured at

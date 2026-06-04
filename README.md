@@ -90,6 +90,14 @@ report.animations; // CSS durations (ms), easings, @keyframes names
 report.stack; // detected frameworks with confidence
 ```
 
+To copy the site's images for a redesign, fetch the manifest to disk:
+
+```ts
+import { downloadAssets } from "@tokenscout/extract";
+
+await downloadAssets(report.assets, "./out/assets"); // writes files + manifest.json
+```
+
 The individual collectors (`discoverAssets`, `extractAnimations`, `profilePage`,
 `discoverSitemapUrls`) are exported too, if you want to run them on your own
 `page`.
@@ -180,11 +188,11 @@ Full document: [`packages/core/examples/design-tokens.json`](./packages/core/exa
 
 Honest about the edges, since they affect output:
 
-- **Extraction covers styles, assets, CSS motion, and stack; not yet downloads
-  or JS motion.** `@tokenscout/extract` reads color/type/spacing, an asset
-  manifest, CSS animation tokens, and a tech-stack profile, with link or sitemap
-  discovery. Still on the roadmap: downloading the manifested assets to disk,
-  Lottie/JS-animation-library capture, and runtime motion instrumentation.
+- **Extraction covers styles, assets, asset download, CSS motion, and stack; not
+  yet JS motion.** `@tokenscout/extract` reads color/type/spacing, an asset
+  manifest (`downloadAssets` fetches it to disk), CSS animation tokens, and a
+  tech-stack profile, with link or sitemap discovery. Still on the roadmap:
+  Lottie/JS-animation-library capture and runtime motion instrumentation.
 - **Motion tokens are durations only (in the DTCG `duration` group).** Easings
   and `@keyframes` names are reported on `inspectSite`'s `animations` field but
   are not yet emitted as DTCG tokens.
