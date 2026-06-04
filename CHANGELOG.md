@@ -28,6 +28,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `extractTokens` chains that straight into `assembleTokens`. Aggregation lives
   in a pure `harvest` function with unit tests; a browser smoke test runs against
   a local fixture in CI.
+- `@tokenscout/extract` extraction modules, each a pure unit-tested core plus a
+  thin browser/IO layer:
+  - `discoverAssets` / `buildAssetManifest`: harvest images, backgrounds, video
+    posters, favicons, and the OG image into a resolved, deduplicated manifest.
+  - `extractAnimations` / `reduceAnimationTokens`: CSS animation tokens
+    (durations in ms, easings, `@keyframes` names).
+  - `profilePage` / `profileStack`: tech-stack fingerprinting (Next, React, Vue,
+    Nuxt, Angular, Svelte, WordPress, Shopify, Gatsby) with confidence.
+  - `discoverSitemapUrls` / `parseSitemap`: sitemap and sitemap-index discovery
+    over `fetch`, fail-soft.
 
 ### Changed
 

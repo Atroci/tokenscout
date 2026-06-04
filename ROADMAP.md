@@ -38,18 +38,22 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
 - [x] Computed-style extraction at multiple breakpoints (the CSSOM read)
 - [x] Same-origin link crawl (discover top-N pages)
 - [x] `extractSite` / `extractTokens`, with a browser smoke test in CI
-- [ ] Sitemap-driven discovery and tech-stack profiling
-- [ ] Image / asset harvesting: walk the rendered DOM (`<img>`, `srcset`,
-      `background-image`, SVG, video posters, OG/favicons), download, and emit an
-      asset manifest. Supports the redesign-migration "copy the old site's
-      images" workflow.
+- [x] Sitemap-driven discovery (`discoverSitemapUrls`, `parseSitemap`)
+- [x] Tech-stack profiling (`profilePage`, `profileStack`)
+- [x] Image / asset harvesting: walk the rendered DOM (`<img>`, `srcset`,
+      `background-image`, video posters, favicons, OG image) and emit a resolved,
+      deduplicated asset manifest (`discoverAssets`, `buildAssetManifest`).
+- [ ] Asset download: fetch the manifest entries to disk for the
+      redesign-migration "copy the old site's images" workflow.
 
 ### Phase 4: Animation capture (`@tokenscout/extract`)
 The hard, differentiating layer. Web motion comes from three sources, captured at
 increasing ambition:
 
-- [ ] **CSS**: extract `@keyframes` + `transition`/`animation-*` into animation
-      tokens (durations, easings, keyframe definitions). Statically tractable.
+- [x] **CSS**: extract `transition`/`animation-*` and `@keyframes` names into
+      animation tokens (durations in ms, easings, keyframe names) via
+      `extractAnimations` / `reduceAnimationTokens`. Keyframe-definition capture
+      (the full step bodies) is still pending.
 - [ ] **Lottie**: detect + download Lottie JSON; directly reusable in the new
       site as-is.
 - [ ] **Library detection**: fingerprint GSAP / Framer Motion / AOS and scrape
