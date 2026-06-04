@@ -1,0 +1,33 @@
+{
+  "name": "tokenscout",
+  "version": "0.0.0",
+  "description": "Extract design tokens from a live, rendered website — perceptual color clustering, type and spacing scales.",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./color": "./dist/color/index.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "design-tokens",
+    "css",
+    "color",
+    "cielab",
+    "delta-e",
+    "design-system",
+    "web"
+  ],
+  "license": "MIT",
+  "author": "Hugo Carvalho (@Atroci)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atroci/tokenscout.git"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
