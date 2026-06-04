@@ -12,8 +12,16 @@ starts from the rendered result: it reads computed styles off live pages and
 reduces them to a clean token set — a perceptually-deduplicated color palette,
 type scale, and spacing scale.
 
-> Status: **early / open core.** The color layer is the first public surface.
-> Crawl + computed-style extraction and the type/spacing reducers land next.
+**The epic:** point tokenscout at a live URL and get back a faithful, reusable
+design-token set — palette, type scale, spacing scale, **and motion** — plus the
+site's image assets, ready to seed a redesign. Source-agnostic: it reads what the
+browser actually paints, so it works on any stack, framework, or no framework.
+
+> Status: **v0.1.0 — open core.** Shipped: the zero-dependency **color** layer
+> (parse · sRGB→Lab · ΔE76 · perceptual clustering), fully tested. Next: the
+> live-site **extraction** layer (computed styles, asset harvesting, animation
+> capture) and the type/spacing reducers. See [ROADMAP.md](./ROADMAP.md) and
+> [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Why
 
@@ -58,12 +66,26 @@ Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
 
 ## Roadmap
 
-- [x] Color: parse, sRGB→Lab, ΔE76, perceptual clustering
-- [ ] Live crawl + computed-style extraction (headless)
+Two-package shape — a zero-dependency **core** (pure token math) and an
+**extract** package that drives a headless browser. Full detail in
+[ROADMAP.md](./ROADMAP.md); design in [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+**Core (`tokenscout`, zero deps):**
+- [x] Color — parse, sRGB→Lab, ΔE76, perceptual clustering
+- [x] Tests + CI
 - [ ] Type scale reducer
 - [ ] Spacing scale reducer
-- [ ] `design-tokens.json` (W3C DTCG format) export
-- [x] Tests + CI
+- [ ] `design-tokens.json` (W3C DTCG) export
+
+**Extract (`@tokenscout/extract`, Playwright peer):**
+- [ ] Live crawl + computed-style extraction at breakpoints
+- [ ] Image / asset harvesting (manifest + files, for redesign migration)
+- [ ] Animation capture — CSS `@keyframes`/transition tokens + Lottie download
+      + library detection + motion-reference video, up to runtime WAAPI/rAF
+      instrumentation of JS-driven motion (research tier)
+
+**Release:**
+- [ ] Publish core to npm (`0.1.x`)
 
 ## Contributing
 
