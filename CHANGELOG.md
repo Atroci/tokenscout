@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- `@tokenscout/extract` experimental (research-tier) motion capture, not part of
+  `inspectSite`'s default output:
+  - `detectPageMotion` / `detectMotion`: fingerprint animation libraries (GSAP,
+    Framer Motion, AOS, anime.js, Velocity, ScrollMagic, Lottie), collect Lottie
+    source URLs, and scrape declarative `data-aos` configs.
+  - `captureMotion` / `reduceWaapiTimelines`: a pre-load hook wraps
+    `Element.animate` to record Web-Animations-API motion (durations in ms,
+    easings, animated properties) regardless of which library produced it.
 
 ## [0.2.0] - 2026-06-04
 

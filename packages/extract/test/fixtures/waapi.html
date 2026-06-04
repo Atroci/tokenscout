@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>waapi fixture</title>
+  </head>
+  <body>
+    <div class="box">animate me</div>
+    <script>
+      // JS-driven motion via the Web Animations API, fired on load.
+      document.querySelector(".box").animate(
+        [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }],
+        { duration: 400, easing: "ease-out" },
+      );
+      document.body.animate([{ opacity: 0.5 }, { opacity: 1 }], 250);
+    </script>
+  </body>
+</html>

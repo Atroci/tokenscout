@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>motion libs fixture</title>
+    <script>
+      // Stand-ins for real libraries, enough for fingerprinting.
+      window.AOS = { init: function () {} };
+      window.gsap = { to: function () {} };
+    </script>
+  </head>
+  <body data-framer-name="root">
+    <section data-aos="fade-up">A</section>
+    <section data-aos="zoom-in">B</section>
+    <lottie-player src="/anim/hero.json"></lottie-player>
+  </body>
+</html>

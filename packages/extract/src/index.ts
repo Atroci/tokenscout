@@ -220,3 +220,25 @@ export {
   discoverSitemapUrls,
   type DiscoverSitemapOptions,
 } from "./sitemap.js";
+
+// Experimental (research tier): JS-animation-library detection. `Confidence` is
+// re-used from profile-stack above, so it is not re-exported here.
+export {
+  detectMotion,
+  detectPageMotion,
+  MOTION_GLOBALS,
+  type RawMotionSignals,
+  type MotionLibrary,
+  type LottieUsage,
+  type AosUsage,
+  type MotionReport,
+} from "./detect-motion.js";
+
+// Experimental (research tier): WAAPI capture of JS-driven motion.
+export {
+  reduceWaapiTimelines,
+  captureMotion,
+  type WaapiRecord,
+  type MotionTimelines,
+  type CaptureMotionOptions,
+} from "./instrument-motion.js";
