@@ -186,6 +186,16 @@ export {
   type AssetManifest,
 } from "./harvest-assets.js";
 
+// Asset download (fetch a manifest to disk + manifest.json).
+export {
+  downloadAssets,
+  assetFilename,
+  type DownloadedAsset,
+  type FailedAsset,
+  type DownloadReport,
+  type DownloadOptions,
+} from "./download-assets.js";
+
 // CSS animation tokens (durations, easings, @keyframes names).
 export {
   reduceAnimationTokens,

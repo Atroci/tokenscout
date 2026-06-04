@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.2.0] - 2026-06-04
+
+The live-site extraction layer plus motion tokens. Core stays zero-dependency;
+all browser work lives in the new `@tokenscout/extract` package.
+
 ### Added
 
 - `schema.ts`: the shared boundary contract (`PageExtract`, `DesignTokens`
@@ -44,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `assembleTokens` accepts an `animations` option and emits a DTCG `duration`
   group (milliseconds). `schema.ts` gains `DurationValue` and `AnimationInput`,
   and `DesignToken.$type` now includes `"duration"`.
+- `downloadAssets` / `assetFilename`: fetch a harvested asset manifest to disk
+  (safe, deduplicated filenames) and write a `manifest.json`, fail-soft per
+  asset.
 
 ### Changed
 
@@ -51,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `packages/core` (name still `tokenscout`, no consumer breakage) and the new
   extractor to `packages/extract`. The root is a private workspace. CI now runs
   a fast core job and a separate Chromium-backed extract job.
+- `ARCHITECTURE.md` rewritten to match the real two-package layout, and its
+  boundary-type excerpt matches `schema.ts` (`PageExtract` carries
+  `type`/`spacing` objects, not flat string arrays).
 
 ### Fixed
 
@@ -61,17 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `assembleTokens` no longer lets a fully transparent paint (`alpha 0`) win as a
   cluster's canonical color, which could emit a transparent value as a primary
   color token.
-
-### Changed
-
-- `ARCHITECTURE.md` now distinguishes the current single-package layout from the
-  planned core/extract workspace split, and its boundary-type excerpt matches
-  `src/schema.ts` (`PageExtract` carries `type`/`spacing` objects, not flat
-  string arrays).
-
-Next (see [ROADMAP.md](./ROADMAP.md)): the live-site `@tokenscout/extract`
-package, covering computed-style extraction, asset harvesting, and animation
-capture.
 
 ## [0.1.0] - 2026-06-04
 
@@ -91,5 +93,6 @@ First open-core release: the zero-dependency color layer, tested and CI-gated.
 - Project docs: `README`, `CONTRIBUTING`, `CODE_OF_CONDUCT`, `SECURITY`,
   `ROADMAP`, `ARCHITECTURE`, issue/PR templates.
 
-[Unreleased]: https://github.com/Atroci/tokenscout/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Atroci/tokenscout/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Atroci/tokenscout/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Atroci/tokenscout/releases/tag/v0.1.0
