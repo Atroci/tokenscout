@@ -22,6 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a runnable end-to-end demo of `assembleTokens`.
 - `Release` GitHub Actions workflow: publishes to npm with provenance on a `v*`
   tag, and `publishConfig.access: public` in `package.json`.
+- **`@tokenscout/extract`** (new package): `extractSite` drives headless Chromium
+  (Playwright peer dependency) to read computed styles at one or more
+  breakpoints, with optional same-origin crawling, and returns `PageExtract[]`.
+  `extractTokens` chains that straight into `assembleTokens`. Aggregation lives
+  in a pure `harvest` function with unit tests; a browser smoke test runs against
+  a local fixture in CI.
+
+### Changed
+
+- Repo restructured into npm workspaces: the published core moved to
+  `packages/core` (name still `tokenscout`, no consumer breakage) and the new
+  extractor to `packages/extract`. The root is a private workspace. CI now runs
+  a fast core job and a separate Chromium-backed extract job.
 
 ### Fixed
 

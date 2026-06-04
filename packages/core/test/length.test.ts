@@ -27,7 +27,11 @@ test("parseLength: is case-insensitive and tolerates surrounding whitespace", ()
 
 test("parseLength: returns null for unsupported units and junk", () => {
   for (const v of ["2em", "100%", "auto", "inherit", "16", "px", ""]) {
-    assert.equal(parseLength(v), null, `expected null for ${JSON.stringify(v)}`);
+    assert.equal(
+      parseLength(v),
+      null,
+      `expected null for ${JSON.stringify(v)}`,
+    );
   }
 });
 

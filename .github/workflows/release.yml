@@ -30,22 +30,22 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Build core
+        run: npm run build -w tokenscout
 
-      - name: Build
-        run: npm run build
+      - name: Typecheck core
+        run: npm run typecheck -w tokenscout
 
-      - name: Test
-        run: npm test
+      - name: Test core
+        run: npm run test -w tokenscout
 
-      - name: Publish (with provenance, skip if already on npm)
+      - name: Publish core (with provenance, skip if already on npm)
         run: |
-          VER="$(node -p "require('./package.json').version")"
+          VER="$(node -p "require('./packages/core/package.json').version")"
           if npm view "tokenscout@${VER}" version >/dev/null 2>&1; then
             echo "tokenscout@${VER} is already published. Skipping."
           else
-            npm publish --provenance --access public
+            npm publish -w tokenscout --provenance --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

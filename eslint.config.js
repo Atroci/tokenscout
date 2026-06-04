@@ -3,7 +3,7 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/", "node_modules/", "_upstreams/"] },
+  { ignores: ["**/dist/", "**/node_modules/", "_upstreams/"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -18,7 +18,7 @@ export default tseslint.config(
   },
   {
     // Example scripts are meant to be run and print their output.
-    files: ["examples/**/*.ts"],
+    files: ["**/examples/**/*.ts"],
     rules: { "no-console": "off" },
   },
 );

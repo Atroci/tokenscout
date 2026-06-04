@@ -1,0 +1,63 @@
+{
+  "name": "tokenscout",
+  "version": "0.1.0",
+  "description": "Extract design tokens from a live, rendered website: perceptual color clustering, type and spacing scales.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./color": {
+      "types": "./dist/color/index.d.ts",
+      "import": "./dist/color/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./type": {
+      "types": "./dist/type/index.d.ts",
+      "import": "./dist/type/index.js"
+    },
+    "./spacing": {
+      "types": "./dist/spacing/index.d.ts",
+      "import": "./dist/spacing/index.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepack": "npm run build",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "keywords": [
+    "design-tokens",
+    "css",
+    "color",
+    "cielab",
+    "delta-e",
+    "design-system",
+    "web"
+  ],
+  "license": "MIT",
+  "author": "Hugo Carvalho (@Atroci)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atroci/tokenscout.git",
+    "directory": "packages/core"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

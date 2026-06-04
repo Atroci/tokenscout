@@ -1,0 +1,44 @@
+{
+  "name": "@tokenscout/extract",
+  "version": "0.1.0",
+  "description": "Drive a headless browser to extract design-token observations from a live URL, for tokenscout.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepack": "npm run build",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "keywords": ["design-tokens", "playwright", "css", "computed-style", "tokenscout"],
+  "license": "MIT",
+  "author": "Hugo Carvalho (@Atroci)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atroci/tokenscout.git",
+    "directory": "packages/extract"
+  },
+  "dependencies": {
+    "tokenscout": "^0.1.0"
+  },
+  "peerDependencies": {
+    "playwright": ">=1.40"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

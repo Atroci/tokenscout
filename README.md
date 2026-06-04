@@ -14,20 +14,20 @@ Most design-token tooling starts from source CSS or a design file. tokenscout
 works on computed styles, the values a browser actually paints, so cascades,
 overrides, third-party widgets, and runtime theming are all already resolved.
 
-### What ships today
+Two packages:
 
-The **core token engine**, with zero runtime dependencies. You give it the
-style observations from a page (colors, font sizes, spacing) and it returns a
-deduplicated, structured token document. Color clustering, type and spacing
-scale detection, and DTCG export are all implemented and tested.
+- **`tokenscout`** (core), zero runtime dependencies. You give it style
+  observations from a page (colors, font sizes, spacing) and it returns a
+  deduplicated, structured token document. Color clustering, type and spacing
+  scale detection, and DTCG export are all implemented and tested.
+- **`@tokenscout/extract`**, which drives a headless browser (Playwright) to
+  collect those observations from a live URL for you: computed styles at one or
+  more breakpoints, with optional same-origin crawling. Image-asset harvesting
+  and animation capture are still on the roadmap.
 
-### What is in active development
-
-The **`@tokenscout/extract`** package: point it at a live URL and it drives a
-headless browser to collect those observations for you (computed styles at
-multiple breakpoints, then image assets and animation capture). Until it lands,
-you supply the observations yourself, from your own crawler or by hand. Progress
-and design in [ROADMAP.md](./ROADMAP.md) and [ARCHITECTURE.md](./ARCHITECTURE.md).
+So you can either supply observations yourself (your own crawler, or by hand) or
+let `@tokenscout/extract` read them off a live page. Design and status in
+[ARCHITECTURE.md](./ARCHITECTURE.md) and [ROADMAP.md](./ROADMAP.md).
 
 ## Why
 
@@ -46,9 +46,34 @@ and design in [ROADMAP.md](./ROADMAP.md) and [ARCHITECTURE.md](./ARCHITECTURE.md
 npm install tokenscout
 ```
 
-ESM, Node 20+.
+For live extraction, also install the extract package and a browser:
+
+```bash
+npm install @tokenscout/extract playwright
+npx playwright install chromium
+```
+
+ESM, Node 20+. Playwright is a peer dependency of `@tokenscout/extract`, so the
+core stays dependency-free.
 
 ## Use
+
+### From a live URL
+
+```ts
+import { extractTokens } from "@tokenscout/extract";
+
+// Crawl + read computed styles, then reduce to a DTCG token document.
+const tokens = await extractTokens("https://example.com", {
+  breakpoints: [1280, 375],
+  top: 1, // same-origin pages to crawl from the entry URL
+});
+```
+
+`extractSite(url, opts)` is also exported if you want the raw `PageExtract[]`
+before reduction.
+
+### From observations you already have
 
 Feed in page observations, get a DTCG token document back:
 
@@ -74,9 +99,10 @@ const pages: PageExtract[] = [
 const tokens = assembleTokens(pages); // { color, fontSize, spacing }, DTCG-shaped
 ```
 
-The full runnable version is in [`examples/quickstart.ts`](./examples/quickstart.ts)
-(`npx tsx examples/quickstart.ts`), and its output is checked in at
-[`examples/design-tokens.json`](./examples/design-tokens.json).
+The full runnable version is in
+[`packages/core/examples/quickstart.ts`](./packages/core/examples/quickstart.ts)
+(`npx tsx packages/core/examples/quickstart.ts`), and its output is checked in at
+[`packages/core/examples/design-tokens.json`](./packages/core/examples/design-tokens.json).
 
 Need just the color math? Import it directly:
 
@@ -116,7 +142,7 @@ into 4 real ones and emits clean type and spacing scales:
 }
 ```
 
-Full document: [`examples/design-tokens.json`](./examples/design-tokens.json).
+Full document: [`packages/core/examples/design-tokens.json`](./packages/core/examples/design-tokens.json).
 
 ## Use cases
 
@@ -133,8 +159,9 @@ Full document: [`examples/design-tokens.json`](./examples/design-tokens.json).
 
 Honest about the edges, since they affect output:
 
-- **No live extraction yet.** You supply the `PageExtract[]`. The browser-driven
-  crawler is the next package (see Roadmap).
+- **Extraction is computed styles only, for now.** `@tokenscout/extract` reads
+  color, type, and spacing at breakpoints with optional same-origin crawling.
+  Image-asset harvesting and animation capture are still on the roadmap.
 - **Color input is hex and `rgb()`/`rgba()`.** `hsl()`, `oklch()`, named colors,
   and `color()` are not parsed yet and are dropped.
 - **Lengths are `px` and `rem` only.** `em`, `%`, `vw`, and keywords are dropped.
@@ -159,7 +186,7 @@ package that drives a headless browser. Full detail in
 - [x] `design-tokens.json` (W3C DTCG) export
 
 **Extract (`@tokenscout/extract`, Playwright peer):**
-- [ ] Live crawl + computed-style extraction at breakpoints
+- [x] Live crawl + computed-style extraction at breakpoints
 - [ ] Image / asset harvesting (manifest + files, for redesign migration)
 - [ ] Animation capture: CSS `@keyframes`/transition tokens + Lottie download
       + library detection + motion-reference video, up to runtime WAAPI/rAF
