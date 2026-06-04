@@ -36,8 +36,8 @@ export interface PageExtract {
 
 /** A single W3C DTCG token (minimal valid shape). */
 export interface DesignToken {
-  $value: string | DimensionValue;
-  $type: "color" | "dimension";
+  $value: string | DimensionValue | DurationValue;
+  $type: "color" | "dimension" | "duration";
   $description?: string;
 }
 
@@ -46,6 +46,17 @@ export interface DimensionValue {
   value: number;
   /** v1 reducers only ever emit "px"; "rem" is reserved for a future unit-preserving mode. */
   unit: "px" | "rem";
+}
+
+/** DTCG duration value object. The animation reducer emits milliseconds. */
+export interface DurationValue {
+  value: number;
+  unit: "ms" | "s";
+}
+
+/** Motion observations fed into assembleTokens. Durations are in milliseconds. */
+export interface AnimationInput {
+  durations?: number[];
 }
 
 /** A DTCG group: either nested groups or leaf tokens. */

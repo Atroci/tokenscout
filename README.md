@@ -73,6 +73,27 @@ const tokens = await extractTokens("https://example.com", {
 `extractSite(url, opts)` is also exported if you want the raw `PageExtract[]`
 before reduction.
 
+For the full redesign bundle in one call, use `inspectSite`:
+
+```ts
+import { inspectSite } from "@tokenscout/extract";
+
+const report = await inspectSite("https://example.com", {
+  breakpoints: [1280, 375],
+  top: 5,
+  sitemap: true, // discover pages from sitemap.xml instead of crawling links
+});
+
+report.tokens; // DTCG document (color, fontSize, spacing, and a duration group)
+report.assets; // resolved, deduplicated image/asset manifest
+report.animations; // CSS durations (ms), easings, @keyframes names
+report.stack; // detected frameworks with confidence
+```
+
+The individual collectors (`discoverAssets`, `extractAnimations`, `profilePage`,
+`discoverSitemapUrls`) are exported too, if you want to run them on your own
+`page`.
+
 ### From observations you already have
 
 Feed in page observations, get a DTCG token document back:
@@ -159,9 +180,14 @@ Full document: [`packages/core/examples/design-tokens.json`](./packages/core/exa
 
 Honest about the edges, since they affect output:
 
-- **Extraction is computed styles only, for now.** `@tokenscout/extract` reads
-  color, type, and spacing at breakpoints with optional same-origin crawling.
-  Image-asset harvesting and animation capture are still on the roadmap.
+- **Extraction covers styles, assets, CSS motion, and stack; not yet downloads
+  or JS motion.** `@tokenscout/extract` reads color/type/spacing, an asset
+  manifest, CSS animation tokens, and a tech-stack profile, with link or sitemap
+  discovery. Still on the roadmap: downloading the manifested assets to disk,
+  Lottie/JS-animation-library capture, and runtime motion instrumentation.
+- **Motion tokens are durations only (in the DTCG `duration` group).** Easings
+  and `@keyframes` names are reported on `inspectSite`'s `animations` field but
+  are not yet emitted as DTCG tokens.
 - **Color input is hex and `rgb()`/`rgba()`.** `hsl()`, `oklch()`, named colors,
   and `color()` are not parsed yet and are dropped.
 - **Lengths are `px` and `rem` only.** `em`, `%`, `vw`, and keywords are dropped.

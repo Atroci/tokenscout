@@ -12,24 +12,31 @@ import {
 } from "../color/index.js";
 import { reduceTypeScale } from "../type/index.js";
 import { reduceSpacingScale } from "../spacing/index.js";
-import type { PageExtract, DesignTokens, TokenGroup } from "../schema.js";
+import type {
+  PageExtract,
+  DesignTokens,
+  TokenGroup,
+  AnimationInput,
+} from "../schema.js";
 
 export interface AssembleOptions {
   /** ΔE76 clustering threshold for colors. Defaults to DEFAULT_DELTA_E. */
   deltaE?: number;
   /** Root font-size in px for rem→px conversion. Defaults to 16. */
   rootPx?: number;
+  /** Motion observations (durations in ms). Emitted as a DTCG `duration` group. */
+  animations?: AnimationInput;
 }
 
 /**
  * Reduce hand-built or extractor-produced PageExtract[] into a DTCG token
- * document: { color, fontSize, spacing }. Empty groups are omitted.
+ * document: { color, fontSize, spacing, duration }. Empty groups are omitted.
  */
 export function assembleTokens(
   pages: PageExtract[],
   opts: AssembleOptions = {},
 ): DesignTokens {
-  const { deltaE = DEFAULT_DELTA_E, rootPx } = opts;
+  const { deltaE = DEFAULT_DELTA_E, rootPx, animations } = opts;
   const tokens: DesignTokens = {};
 
   const color = buildColorGroup(pages, deltaE);
@@ -41,7 +48,30 @@ export function assembleTokens(
   const spacing = buildSpacingGroup(pages, rootPx);
   if (spacing) tokens.spacing = spacing;
 
+  const duration = buildDurationGroup(animations);
+  if (duration) tokens.duration = duration;
+
   return tokens;
+}
+
+/** Emit ascending, de-duplicated DTCG `duration` tokens (ms) from motion input. */
+function buildDurationGroup(
+  animations: AnimationInput | undefined,
+): TokenGroup | null {
+  const ms = animations?.durations ?? [];
+  const sorted = [
+    ...new Set(ms.filter((d) => Number.isFinite(d) && d > 0)),
+  ].sort((a, b) => a - b);
+  if (sorted.length === 0) return null;
+
+  const group: TokenGroup = {};
+  sorted.forEach((value, i) => {
+    group[`duration-${i + 1}`] = {
+      $value: { value, unit: "ms" },
+      $type: "duration",
+    };
+  });
+  return group;
 }
 
 function buildColorGroup(
