@@ -99,9 +99,10 @@ const pages: PageExtract[] = [
 const tokens = assembleTokens(pages); // { color, fontSize, spacing }, DTCG-shaped
 ```
 
-The full runnable version is in [`examples/quickstart.ts`](./examples/quickstart.ts)
-(`npx tsx examples/quickstart.ts`), and its output is checked in at
-[`examples/design-tokens.json`](./examples/design-tokens.json).
+The full runnable version is in
+[`packages/core/examples/quickstart.ts`](./packages/core/examples/quickstart.ts)
+(`npx tsx packages/core/examples/quickstart.ts`), and its output is checked in at
+[`packages/core/examples/design-tokens.json`](./packages/core/examples/design-tokens.json).
 
 Need just the color math? Import it directly:
 
@@ -141,7 +142,7 @@ into 4 real ones and emits clean type and spacing scales:
 }
 ```
 
-Full document: [`examples/design-tokens.json`](./examples/design-tokens.json).
+Full document: [`packages/core/examples/design-tokens.json`](./packages/core/examples/design-tokens.json).
 
 ## Use cases
 
