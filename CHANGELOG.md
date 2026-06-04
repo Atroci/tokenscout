@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Roadmap tracked in [ROADMAP.md](./ROADMAP.md): the live-site `extract` package
-(computed-style extraction, asset harvesting, animation capture) and the
-type/spacing reducers.
+### Added
+
+- `schema.ts` — the shared boundary contract (`PageExtract`, `DesignTokens`
+  DTCG types, color/type/spacing observation types).
+- `tokenscout/type` — `reduceTypeScale`: parse px/rem → sorted, de-duplicated
+  scale + modular-ratio detection.
+- `tokenscout/spacing` — `reduceSpacingScale`: parse → GCD base-grid detection
+  → quantized scale.
+- `tokenscout/tokens` — `assembleTokens`: clustered colors + type/spacing
+  scales → a W3C DTCG token object.
+- Brazilian-Portuguese README (`README.pt-BR.md`) + language switcher.
+
+Next (see [ROADMAP.md](./ROADMAP.md)): the live-site `@tokenscout/extract`
+package — computed-style extraction, asset harvesting, animation capture.
 
 ## [0.1.0] - 2026-06-04
 
