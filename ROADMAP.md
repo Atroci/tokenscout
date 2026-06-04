@@ -64,7 +64,7 @@ increasing ambition:
       blocker for the rest of the package.
 
 ### Phase 5: Release & distribution
-- [ ] Publish `tokenscout` (core) to npm (`0.1.x`)
+- [x] Publish `tokenscout` (core) to npm (`0.1.x`), live since v0.1.0
 - [ ] Publish `@tokenscout/extract` once Phase 3 is usable end-to-end
 - [ ] Submit to design-tooling lists (e.g. Awesome-Design-Tokens) once published
       and proven, not before (and never to digital-forensics lists; the name
