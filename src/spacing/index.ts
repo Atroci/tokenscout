@@ -18,6 +18,10 @@ export interface SpacingScale {
 
 /** Greatest common divisor of two non-negative integers. */
 function gcd(a: number, b: number): number {
+  // Guard: a non-finite operand makes `a % b` NaN and `while (b !== 0)` loop
+  // forever. parseLength already rejects non-finite lengths; this is belt and
+  // braces.
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 1;
   while (b !== 0) {
     [a, b] = [b, a % b];
   }

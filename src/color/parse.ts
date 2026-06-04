@@ -1,5 +1,5 @@
 // Parse CSS color strings (hex, rgb(), rgba()) into normalized sRGB + alpha.
-// Intentionally minimal — extend toward hsl()/lab()/oklch() as needed.
+// Intentionally minimal; extend toward hsl()/lab()/oklch() as needed.
 
 import type { Rgb } from "./lab.js";
 

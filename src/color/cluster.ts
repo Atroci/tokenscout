@@ -9,7 +9,7 @@
 // it. For near-continuous gradients a cluster's perceptual spread is therefore
 // not bounded by `threshold`. Use a smaller threshold if that matters.
 
-import { rgbToLab, deltaE76, type Lab, type Rgb } from "./lab.js";
+import { rgbToLab, deltaE76, roundLab, type Lab, type Rgb } from "./lab.js";
 
 /**
  * ΔE76 just-noticeable-difference threshold for sRGB content.
@@ -61,8 +61,8 @@ class UnionFind {
 
 /**
  * Cluster colors by perceptual similarity. Result is sorted by totalCount
- * descending. O(n²) pairwise — fine for the tens-to-low-hundreds of distinct
- * colors a real stylesheet yields.
+ * descending. O(n²) pairwise, which is fine for the tens-to-low-hundreds of
+ * distinct colors a real stylesheet yields.
  */
 export function clusterColors(
   colors: ColorInput[],
@@ -92,12 +92,11 @@ export function clusterColors(
     const canonical = members.reduce((a, b) =>
       (b.count ?? 0) > (a.count ?? 0) ? b : a,
     );
-    const lab = rgbToLab(canonical.rgb);
     clusters.push({
       canonical: canonical.value,
       members: [...new Set(members.map((m) => m.value))].sort(),
       totalCount: members.reduce((s, m) => s + (m.count ?? 0), 0),
-      lab: lab.map((v) => Math.round(v * 100) / 100) as unknown as Lab,
+      lab: roundLab(rgbToLab(canonical.rgb)),
     });
   }
 

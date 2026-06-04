@@ -131,3 +131,30 @@ test("clusterColors: canonical is highest-count member", () => {
 test("DEFAULT_DELTA_E is the documented JND threshold", () => {
   assert.equal(DEFAULT_DELTA_E, 2.5);
 });
+
+test("deltaE76: black vs white is ~100 (anchors the threshold scale)", () => {
+  // The whole clustering pipeline gates on this magnitude; pin a known pair so
+  // a sign or scale regression in the formula can't pass silently.
+  const d = deltaE76(rgbToLab([0, 0, 0]), rgbToLab([1, 1, 1]));
+  close(d, 100, 0.5);
+});
+
+test("clusterColors: single-linkage chains transitively (documented caveat)", () => {
+  // Three grays where each adjacent pair is within threshold but the endpoints
+  // are not: dE(A,B) and dE(B,C) <= 2.5, dE(A,C) > 2.5. Single-linkage still
+  // merges all three. Locks the documented behavior against a future linkage swap.
+  const chain = [
+    { value: "A", rgb: [0.5, 0.5, 0.5] as const, count: 1 },
+    { value: "B", rgb: [0.515, 0.515, 0.515] as const, count: 1 },
+    { value: "C", rgb: [0.53, 0.53, 0.53] as const, count: 1 },
+  ];
+  const ab = deltaE76(rgbToLab(chain[0].rgb), rgbToLab(chain[1].rgb));
+  const bc = deltaE76(rgbToLab(chain[1].rgb), rgbToLab(chain[2].rgb));
+  const ac = deltaE76(rgbToLab(chain[0].rgb), rgbToLab(chain[2].rgb));
+  assert.ok(ab <= 2.5 && bc <= 2.5, "adjacent pairs must be in threshold");
+  assert.ok(ac > 2.5, "endpoints must be out of threshold");
+
+  const clusters = clusterColors(chain);
+  assert.equal(clusters.length, 1);
+  assert.equal(clusters[0].members.length, 3);
+});

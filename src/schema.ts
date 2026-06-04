@@ -44,6 +44,7 @@ export interface DesignToken {
 /** DTCG dimension value object. */
 export interface DimensionValue {
   value: number;
+  /** v1 reducers only ever emit "px"; "rem" is reserved for a future unit-preserving mode. */
   unit: "px" | "rem";
 }
 

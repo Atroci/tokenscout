@@ -95,3 +95,20 @@ test("reduceSpacingScale: low coverage surfaces a weak grid", () => {
   assert.equal(r.base, 1);
   assert.deepEqual(r.scale, [10, 21]);
 });
+
+test("reduceSpacingScale: a single value becomes its own base", () => {
+  const r = reduceSpacingScale([page(["7px"])]);
+  assert.equal(r.base, 7);
+  assert.deepEqual(r.scale, [7]);
+  assert.equal(r.coverage, 1);
+});
+
+test("reduceSpacingScale: an overflowing length is dropped, not hung on", () => {
+  // Regression: a long-digit value overflows to Infinity. Before the
+  // parse-boundary guard this reached gcd() and looped forever. It must now be
+  // dropped, leaving the finite grid intact, and return promptly.
+  const huge = "9".repeat(400) + "px";
+  const r = reduceSpacingScale([page([huge, "8px", "16px"])]);
+  assert.equal(r.base, 8);
+  assert.deepEqual(r.scale, [8, 16]);
+});

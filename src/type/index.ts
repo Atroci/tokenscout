@@ -1,9 +1,9 @@
 // Type-scale reducer: turn observed font-size strings into a sorted, deduped
 // px scale and (best-effort) the modular ratio that generated it.
 //
-// Truth over invention: sizes are reported exactly as observed (rounded to
-// 2dp). The ratio is informational — a heuristic over the observed sizes, with
-// a `consistency` score that says how strongly the sizes actually follow it.
+// Report what was observed, never invent: sizes are reported exactly as
+// observed (rounded to 2dp). The ratio is informational, a heuristic over the
+// observed sizes, with a `consistency` score for how strongly they follow it.
 // We never snap sizes to the detected ratio.
 
 import { parseLength } from "../length.js";
