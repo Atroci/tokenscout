@@ -19,9 +19,10 @@ export function parseColor(value: string): ParsedColor | null {
 
   const m = RGB_RE.exec(v);
   if (m) {
+    const clamp = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
     return {
-      rgb: [+m[1] / 255, +m[2] / 255, +m[3] / 255],
-      alpha: m[4] !== undefined ? +m[4] : 1,
+      rgb: [clamp(+m[1] / 255), clamp(+m[2] / 255), clamp(+m[3] / 255)],
+      alpha: m[4] !== undefined ? clamp(+m[4]) : 1,
     };
   }
 
