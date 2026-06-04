@@ -28,16 +28,16 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Build core
+        run: npm run build -w tokenscout
 
-      - name: Build
-        run: npm run build
+      - name: Typecheck core
+        run: npm run typecheck -w tokenscout
 
-      - name: Test
-        run: npm test
+      - name: Test core
+        run: npm run test -w tokenscout
 
-      - name: Publish (with provenance)
-        run: npm publish --provenance --access public
+      - name: Publish core (with provenance)
+        run: npm publish -w tokenscout --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

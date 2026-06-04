@@ -9,32 +9,48 @@ permissions:
   contents: read
 
 jobs:
-  build-test:
-    name: Lint, typecheck, build, test
+  core:
+    name: Core (lint, typecheck, build, test)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install
         run: npm ci
-
       - name: Lint
         run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Build
-        run: npm run build
-
-      - name: Test
-        run: npm test
-
+      - name: Build core
+        run: npm run build -w tokenscout
+      - name: Typecheck core
+        run: npm run typecheck -w tokenscout
+      - name: Test core
+        run: npm run test -w tokenscout
       - name: Audit (production deps)
         run: npm audit --omit=dev --audit-level=high
+
+  extract:
+    name: Extract (browser smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build core (dependency)
+        run: npm run build -w tokenscout
+      - name: Build extract
+        run: npm run build -w @tokenscout/extract
+      - name: Typecheck extract
+        run: npm run typecheck -w @tokenscout/extract
+      - name: Test extract
+        run: npm run test -w @tokenscout/extract

@@ -34,10 +34,11 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
 - [x] `assembleTokens()` → `design-tokens.json` in W3C DTCG format
 - [x] `schema.ts` boundary contract (`PageExtract`, `DesignTokens`)
 
-### Phase 3: Extraction (`@tokenscout/extract`)
-- [ ] Sitemap / link crawl (discover top-N pages)
-- [ ] Tech-stack profile (fingerprint frameworks, CSS-in-JS, etc.)
-- [ ] Computed-style extraction at multiple breakpoints (the CSSOM read)
+### Phase 3: Extraction (`@tokenscout/extract`) (in progress)
+- [x] Computed-style extraction at multiple breakpoints (the CSSOM read)
+- [x] Same-origin link crawl (discover top-N pages)
+- [x] `extractSite` / `extractTokens`, with a browser smoke test in CI
+- [ ] Sitemap-driven discovery and tech-stack profiling
 - [ ] Image / asset harvesting: walk the rendered DOM (`<img>`, `srcset`,
       `background-image`, SVG, video posters, OG/favicons), download, and emit an
       asset manifest. Supports the redesign-migration "copy the old site's
