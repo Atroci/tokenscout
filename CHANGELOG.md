@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tokenscout/tokens`, `assembleTokens`: clustered colors + type/spacing
   scales → a W3C DTCG token object.
 - Brazilian-Portuguese README (`README.pt-BR.md`) + language switcher.
+- `examples/quickstart.ts` plus its checked-in output `examples/design-tokens.json`,
+  a runnable end-to-end demo of `assembleTokens`.
+- `Release` GitHub Actions workflow: publishes to npm with provenance on a `v*`
+  tag, and `publishConfig.access: public` in `package.json`.
 
 ### Fixed
 
