@@ -59,7 +59,7 @@ Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
 - [ ] Type scale reducer
 - [ ] Spacing scale reducer
 - [ ] `design-tokens.json` (W3C DTCG format) export
-- [ ] Tests + CI
+- [x] Tests + CI
 
 ## Contributing
 

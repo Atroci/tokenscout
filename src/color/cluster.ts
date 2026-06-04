@@ -3,6 +3,11 @@
 // Groups near-duplicate colors that are syntactically distinct but
 // perceptually identical (e.g. #3a7bd5, #3b7cd6, rgb(58,123,213)). The
 // canonical per cluster is the highest-count member.
+//
+// Caveat: single-linkage chains transitively. If A~B and B~C are each within
+// the threshold, A, B and C land in one cluster even when ΔE76(A, C) exceeds
+// it. For near-continuous gradients a cluster's perceptual spread is therefore
+// not bounded by `threshold`. Use a smaller threshold if that matters.
 
 import { rgbToLab, deltaE76, type Lab, type Rgb } from "./lab.js";
 
