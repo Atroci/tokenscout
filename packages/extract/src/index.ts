@@ -58,3 +58,37 @@ export async function extractTokens(
 export { discoverPages } from "./crawl.js";
 export { extractPage } from "./extract-page.js";
 export { harvest, type RawObservations } from "./harvest.js";
+
+// Asset harvesting (image/background/favicon/og-image/video-poster manifest).
+export {
+  buildAssetManifest,
+  discoverAssets,
+  type AssetKind,
+  type AssetRef,
+  type AssetManifest,
+} from "./harvest-assets.js";
+
+// CSS animation tokens (durations, easings, @keyframes names).
+export {
+  reduceAnimationTokens,
+  extractAnimations,
+  type RawAnimations,
+  type AnimationTokens,
+} from "./animations.js";
+
+// Tech-stack fingerprinting (frameworks + generator + evidence).
+export {
+  profileStack,
+  profilePage,
+  type RawStackSignals,
+  type Confidence,
+  type FrameworkHit,
+  type StackProfile,
+} from "./profile-stack.js";
+
+// Sitemap-driven page discovery.
+export {
+  parseSitemap,
+  discoverSitemapUrls,
+  type DiscoverSitemapOptions,
+} from "./sitemap.js";
