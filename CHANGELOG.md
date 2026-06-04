@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Nuxt, Angular, Svelte, WordPress, Shopify, Gatsby) with confidence.
   - `discoverSitemapUrls` / `parseSitemap`: sitemap and sitemap-index discovery
     over `fetch`, fail-soft.
+- `inspectSite`: a single-pass inspection that composes everything into one
+  `SiteReport` (tokens, asset manifest, animation tokens, stack profile), with a
+  `sitemap` discovery option and per-collector toggles.
+- `assembleTokens` accepts an `animations` option and emits a DTCG `duration`
+  group (milliseconds). `schema.ts` gains `DurationValue` and `AnimationInput`,
+  and `DesignToken.$type` now includes `"duration"`.
 
 ### Changed
 

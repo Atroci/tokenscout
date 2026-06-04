@@ -154,3 +154,41 @@ test("assembleTokens: drops unparseable colors (hsl/oklch not yet supported)", (
   assert.deepEqual(Object.keys(color), ["color-1"]);
   assert.equal(color["color-1"].$value, "#e23744");
 });
+
+test("assembleTokens: emits a sorted, deduped DTCG duration group from animations", () => {
+  const page: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [],
+      type: { sizes: [] },
+      spacing: { values: [] },
+    },
+  ];
+  const tokens = assembleTokens(page, {
+    animations: { durations: [300, 150, 300, 0, -5] },
+  });
+  const duration = tokens.duration as Record<
+    string,
+    { $value: { value: number; unit: string }; $type: string }
+  >;
+  // 0 and negative dropped, duplicates collapsed, ascending.
+  assert.deepEqual(Object.keys(duration), ["duration-1", "duration-2"]);
+  assert.deepEqual(duration["duration-1"].$value, { value: 150, unit: "ms" });
+  assert.deepEqual(duration["duration-2"].$value, { value: 300, unit: "ms" });
+  assert.equal(duration["duration-1"].$type, "duration");
+});
+
+test("assembleTokens: omits the duration group when no motion is supplied", () => {
+  const page: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [{ value: "#000000", role: "color", count: 1 }],
+      type: { sizes: [] },
+      spacing: { values: [] },
+    },
+  ];
+  assert.equal("duration" in assembleTokens(page), false);
+  assert.equal("duration" in assembleTokens(page, { animations: {} }), false);
+});
