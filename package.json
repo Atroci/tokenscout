@@ -12,6 +12,22 @@
     "./color": {
       "types": "./dist/color/index.d.ts",
       "import": "./dist/color/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./type": {
+      "types": "./dist/type/index.d.ts",
+      "import": "./dist/type/index.js"
+    },
+    "./spacing": {
+      "types": "./dist/spacing/index.d.ts",
+      "import": "./dist/spacing/index.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens/index.js"
     }
   },
   "sideEffects": false,
