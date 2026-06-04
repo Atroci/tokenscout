@@ -1,5 +1,9 @@
 # tokenscout
 
+[![npm version](https://img.shields.io/npm/v/tokenscout.svg)](https://www.npmjs.com/package/tokenscout)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
+
 Extract **design tokens from a live, rendered website** — not from a CSS file,
 not from a Figma export, but from a real page as a browser actually paints it.
 
@@ -66,6 +70,10 @@ Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
 Issues and PRs welcome — especially around color science, CSS value parsing,
 and token-scale heuristics. This is an open-core project; the synthesis and
 reporting layers on top of it are separate.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the dev loop and the
+zero-runtime-dependency rule, and the [Code of Conduct](./CODE_OF_CONDUCT.md)
+before participating. Changes are tracked in [CHANGELOG.md](./CHANGELOG.md).
 
 ## License
 
