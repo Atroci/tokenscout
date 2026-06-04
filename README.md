@@ -102,6 +102,19 @@ The individual collectors (`discoverAssets`, `extractAnimations`, `profilePage`,
 `discoverSitemapUrls`) are exported too, if you want to run them on your own
 `page`.
 
+### Experimental: JS-driven motion
+
+Best-effort, research-tier, and not part of `inspectSite`'s default output:
+
+```ts
+import { detectPageMotion, captureMotion } from "@tokenscout/extract";
+
+const libs = await detectPageMotion(page); // GSAP / Framer / AOS / Lottie ...
+// captureMotion wraps Element.animate before navigation, so call it on a fresh page:
+const motion = await captureMotion(freshPage, "https://example.com");
+// { count, durations (ms), easings, properties } captured from the Web Animations API
+```
+
 ### From observations you already have
 
 Feed in page observations, get a DTCG token document back:
@@ -188,11 +201,14 @@ Full document: [`packages/core/examples/design-tokens.json`](./packages/core/exa
 
 Honest about the edges, since they affect output:
 
-- **Extraction covers styles, assets, asset download, CSS motion, and stack; not
-  yet JS motion.** `@tokenscout/extract` reads color/type/spacing, an asset
-  manifest (`downloadAssets` fetches it to disk), CSS animation tokens, and a
-  tech-stack profile, with link or sitemap discovery. Still on the roadmap:
-  Lottie/JS-animation-library capture and runtime motion instrumentation.
+- **JS-motion capture is experimental.** `@tokenscout/extract` reads
+  color/type/spacing, an asset manifest (`downloadAssets` fetches it to disk),
+  CSS animation tokens, and a tech-stack profile. As **experimental** extras it
+  also fingerprints animation libraries (`detectPageMotion`) and captures
+  Web-Animations-API motion (`captureMotion`, wrapping `Element.animate`). These
+  are best-effort and not part of `inspectSite`'s default output. Still on the
+  roadmap: sampling rAF-driven motion that bypasses WAAPI, downloading Lottie
+  JSON, and motion-reference video.
 - **Motion tokens are durations only (in the DTCG `duration` group).** Easings
   and `@keyframes` names are reported on `inspectSite`'s `animations` field but
   are not yet emitted as DTCG tokens.

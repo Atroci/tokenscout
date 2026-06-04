@@ -54,18 +54,20 @@ increasing ambition:
       animation tokens (durations in ms, easings, keyframe names) via
       `extractAnimations` / `reduceAnimationTokens`. Keyframe-definition capture
       (the full step bodies) is still pending.
-- [ ] **Lottie**: detect + download Lottie JSON; directly reusable in the new
-      site as-is.
-- [ ] **Library detection**: fingerprint GSAP / Framer Motion / AOS and scrape
-      declarative configs (`data-*`, exposed options) where present.
+- [x] **Library detection** (experimental): fingerprint GSAP / Framer Motion /
+      AOS / anime.js / Velocity / ScrollMagic / Lottie and scrape declarative
+      `data-aos` configs via `detectPageMotion` / `detectMotion`.
+- [~] **Lottie**: detection and source-URL collection ship with library
+      detection; downloading the Lottie JSON is still pending (composes with
+      `downloadAssets`).
 - [ ] **Motion-reference video**: Playwright screencast while auto-scrolling and
       hovering, for a visual reference of every motion, source-agnostic.
-- [ ] **Tier 3, runtime instrumentation (research):** inject a pre-load hook that
-      wraps `Element.animate` (Web Animations API) and samples rAF-driven style
-      mutations, recording the *effective* animation timelines regardless of which
-      library produced them. JS motion captured into reusable keyframes. Fragile,
-      per-site tuning expected; pursued as an open-core differentiator, not a
-      blocker for the rest of the package.
+- [~] **Tier 3, runtime instrumentation (research):** `captureMotion` injects a
+      pre-load hook that wraps `Element.animate` (Web Animations API) to record
+      the effective animation timelines regardless of which library produced
+      them, reduced via `reduceWaapiTimelines`. Sampling rAF-driven style
+      mutation (motion that bypasses WAAPI) is still pending. Fragile, per-site
+      tuning expected; an open-core differentiator, not a blocker for the rest.
 
 ### Phase 5: Release & distribution
 - [x] Publish `tokenscout` (core) to npm (`0.1.x`), live since v0.1.0
