@@ -9,18 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `schema.ts` — the shared boundary contract (`PageExtract`, `DesignTokens`
+- `schema.ts`: the shared boundary contract (`PageExtract`, `DesignTokens`
   DTCG types, color/type/spacing observation types).
-- `tokenscout/type` — `reduceTypeScale`: parse px/rem → sorted, de-duplicated
+- `tokenscout/type`, `reduceTypeScale`: parse px/rem → sorted, de-duplicated
   scale + modular-ratio detection.
-- `tokenscout/spacing` — `reduceSpacingScale`: parse → GCD base-grid detection
+- `tokenscout/spacing`, `reduceSpacingScale`: parse → GCD base-grid detection
   → quantized scale.
-- `tokenscout/tokens` — `assembleTokens`: clustered colors + type/spacing
+- `tokenscout/tokens`, `assembleTokens`: clustered colors + type/spacing
   scales → a W3C DTCG token object.
 - Brazilian-Portuguese README (`README.pt-BR.md`) + language switcher.
+- `examples/quickstart.ts` plus its checked-in output `examples/design-tokens.json`,
+  a runnable end-to-end demo of `assembleTokens`.
+- `Release` GitHub Actions workflow: publishes to npm with provenance on a `v*`
+  tag, and `publishConfig.access: public` in `package.json`.
+
+### Fixed
+
+- `parseLength` now rejects lengths whose digit run overflows to a non-finite
+  number. A crafted value (e.g. a 400-digit `px`) previously reached
+  `reduceSpacingScale`, where `gcd` looped forever on `Infinity` (an unbounded
+  hang reachable from `assembleTokens`). `gcd` also guards non-finite operands.
+- `assembleTokens` no longer lets a fully transparent paint (`alpha 0`) win as a
+  cluster's canonical color, which could emit a transparent value as a primary
+  color token.
+
+### Changed
+
+- `ARCHITECTURE.md` now distinguishes the current single-package layout from the
+  planned core/extract workspace split, and its boundary-type excerpt matches
+  `src/schema.ts` (`PageExtract` carries `type`/`spacing` objects, not flat
+  string arrays).
 
 Next (see [ROADMAP.md](./ROADMAP.md)): the live-site `@tokenscout/extract`
-package — computed-style extraction, asset harvesting, animation capture.
+package, covering computed-style extraction, asset harvesting, and animation
+capture.
 
 ## [0.1.0] - 2026-06-04
 

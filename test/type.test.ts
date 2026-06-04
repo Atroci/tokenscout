@@ -98,9 +98,9 @@ test("reduceTypeScale: mixed ratios -> reports median or null, honest consistenc
 });
 
 test("reduceTypeScale: never snaps sizes to the detected ratio", () => {
-  // Slightly irregular but ratio-detectable; sizes stay verbatim (truth).
+  // Slightly irregular but ratio-detectable; sizes stay verbatim.
   const r = reduceTypeScale([page(["16px", "20px", "25px", "30px"])]);
-  // 30 is not 25*1.25 (=31.25) — must remain 30, not be snapped.
+  // 30 is not 25*1.25 (=31.25), so it must remain 30, not be snapped.
   assert.deepEqual(r.sizes, [16, 20, 25, 30]);
 });
 

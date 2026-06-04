@@ -1,0 +1,51 @@
+name: Release
+
+# Publishes tokenscout (core) to npm with provenance when a v* tag is pushed.
+# Idempotent: if the version is already on npm, the publish is skipped, so
+# re-tagging or tagging a manually-published version is safe.
+# Requires an NPM_TOKEN automation token (2FA-bypass) in the repo secrets.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance
+
+jobs:
+  publish:
+    name: Build, test, publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Publish (with provenance, skip if already on npm)
+        run: |
+          VER="$(node -p "require('./package.json').version")"
+          if npm view "tokenscout@${VER}" version >/dev/null 2>&1; then
+            echo "tokenscout@${VER} is already published. Skipping."
+          else
+            npm publish --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

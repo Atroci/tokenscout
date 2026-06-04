@@ -1,4 +1,4 @@
-// Parse CSS length values (px, rem) into px. Intentionally minimal — the only
+// Parse CSS length values (px, rem) into px. Intentionally minimal: the only
 // units the extractor emits for type/spacing today. Shared by the type and
 // spacing reducers (two real call sites). Returns null if unrecognized.
 
@@ -15,5 +15,9 @@ export function parseLength(
   const m = LENGTH_RE.exec(value);
   if (!m) return null;
   const n = +m[1];
-  return m[2].toLowerCase() === "rem" ? n * rootPx : n;
+  const px = m[2].toLowerCase() === "rem" ? n * rootPx : n;
+  // A long-enough digit run overflows to Infinity, which would propagate into
+  // the reducers' arithmetic (gcd loops forever on a non-finite value). Reject
+  // it at the boundary so only finite px ever leave this function.
+  return Number.isFinite(px) ? px : null;
 }

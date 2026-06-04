@@ -12,10 +12,10 @@ assignees: ""
 
 ## Why
 
-<!-- The use case. What does it unlock for token extraction? -->
+<!-- The use case. What does it enable for token extraction? -->
 
 ## Notes
 
 <!-- Optional: API sketch, references (color-science papers, CSS spec), prior art.
-     Remember: tokenscout has zero runtime dependencies — proposals should
+     Remember: tokenscout has zero runtime dependencies. Proposals should
      stay implementable in pure TypeScript. -->

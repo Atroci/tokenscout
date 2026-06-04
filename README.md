@@ -6,74 +6,153 @@ English | [Português (Brasil)](./README.pt-BR.md)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
 
-Extract **design tokens from a live, rendered website** — not from a CSS file,
-not from a Figma export, but from a real page as a browser actually paints it.
+Reduce a website's real, rendered styles to a clean design-token set: a
+perceptually-deduplicated color palette, a type scale, and a spacing scale,
+exported as a W3C DTCG `design-tokens.json`.
 
 Most design-token tooling starts from source CSS or a design file. tokenscout
-starts from the rendered result: it reads computed styles off live pages and
-reduces them to a clean token set — a perceptually-deduplicated color palette,
-type scale, and spacing scale.
+works on computed styles, the values a browser actually paints, so cascades,
+overrides, third-party widgets, and runtime theming are all already resolved.
 
-**The epic:** point tokenscout at a live URL and get back a faithful, reusable
-design-token set — palette, type scale, spacing scale, **and motion** — plus the
-site's image assets, ready to seed a redesign. Source-agnostic: it reads what the
-browser actually paints, so it works on any stack, framework, or no framework.
+### What ships today
 
-> Status: **v0.1.0 — open core.** Shipped: the zero-dependency **color** layer
-> (parse · sRGB→Lab · ΔE76 · perceptual clustering), fully tested. Next: the
-> live-site **extraction** layer (computed styles, asset harvesting, animation
-> capture) and the type/spacing reducers. See [ROADMAP.md](./ROADMAP.md) and
-> [ARCHITECTURE.md](./ARCHITECTURE.md).
+The **core token engine**, with zero runtime dependencies. You give it the
+style observations from a page (colors, font sizes, spacing) and it returns a
+deduplicated, structured token document. Color clustering, type and spacing
+scale detection, and DTCG export are all implemented and tested.
+
+### What is in active development
+
+The **`@tokenscout/extract`** package: point it at a live URL and it drives a
+headless browser to collect those observations for you (computed styles at
+multiple breakpoints, then image assets and animation capture). Until it lands,
+you supply the observations yourself, from your own crawler or by hand. Progress
+and design in [ROADMAP.md](./ROADMAP.md) and [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Why
 
-- **Live, not source.** What ships to a user's screen ≠ what's in the
-  stylesheet (cascades, overrides, third-party widgets, runtime theming).
-- **Perceptual, not syntactic.** `#3a7bd5`, `#3b7cd6`, and `rgb(58,123,213)`
-  are three strings but one color. tokenscout clusters them in **CIELAB** by
-  **ΔE76**, so "47 declared colors → 9 real ones" falls out for free.
+- **Computed, not source.** What ships to a user's screen is not what is in the
+  stylesheet. tokenscout reduces the resolved, painted values.
+- **Perceptual clustering.** `#3a7bd5`, `#3b7cd6`, and `rgb(58,123,213)` are
+  three strings but one color. tokenscout clusters them in CIELAB by ΔE76, so a
+  sprawling declared palette collapses to the handful of colors a site really
+  uses (the example below: 9 declared to 4 real).
 - **Zero runtime dependencies.** The color math is ~120 lines of pure
   TypeScript (sRGB→Lab, ΔE76, single-linkage union-find). No native deps.
 
 ## Install
 
 ```bash
-npm install tokenscout   # once published
+npm install tokenscout
 ```
 
+ESM, Node 20+.
+
 ## Use
+
+Feed in page observations, get a DTCG token document back:
+
+```ts
+import { assembleTokens } from "tokenscout/tokens";
+import type { PageExtract } from "tokenscout/schema";
+
+const pages: PageExtract[] = [
+  {
+    url: "https://example.com/",
+    breakpoint: 1280,
+    colors: [
+      { value: "#3a7bd5", role: "background-color", count: 40 },
+      { value: "#3b7cd6", role: "color", count: 5 },
+      { value: "rgb(58, 123, 213)", role: "border-color", count: 2 },
+      { value: "#e23744", role: "color", count: 12 },
+    ],
+    type: { sizes: ["16px", "20px", "25px", "31.25px"] },
+    spacing: { values: ["8px", "16px", "24px", "32px"] },
+  },
+];
+
+const tokens = assembleTokens(pages); // { color, fontSize, spacing }, DTCG-shaped
+```
+
+The full runnable version is in [`examples/quickstart.ts`](./examples/quickstart.ts)
+(`npx tsx examples/quickstart.ts`), and its output is checked in at
+[`examples/design-tokens.json`](./examples/design-tokens.json).
+
+Need just the color math? Import it directly:
 
 ```ts
 import { parseColor, clusterColors } from "tokenscout/color";
 
-const declared = [
-  { value: "#3a7bd5", count: 40 },
-  { value: "#3b7cd6", count: 5 },
-  { value: "rgb(58, 123, 213)", count: 2 },
-  { value: "#e23744", count: 12 },
-];
-
-const colors = declared
-  .map((c) => {
-    const p = parseColor(c.value);
-    return p ? { value: c.value, rgb: p.rgb, count: c.count } : null;
+const colors = ["#3a7bd5", "#3b7cd6", "rgb(58, 123, 213)", "#e23744"]
+  .map((value) => {
+    const p = parseColor(value);
+    return p ? { value, rgb: p.rgb } : null;
   })
   .filter((c) => c !== null);
 
 const clusters = clusterColors(colors); // ΔE76 ≤ 2.5 by default
-// → 2 clusters: one blue (3 members, canonical "#3a7bd5"), one red.
+// 2 clusters: one blue (3 members, canonical "#3a7bd5"), one red.
 ```
 
 Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
 
+## Results
+
+The example above, run through `assembleTokens`, collapses 9 declared colors
+into 4 real ones and emits clean type and spacing scales:
+
+```json
+{
+  "color": {
+    "color-1": { "$value": "#ffffff", "$type": "color" },
+    "color-2": { "$value": "#111827", "$type": "color" },
+    "color-3": { "$value": "#3a7bd5", "$type": "color" },
+    "color-4": { "$value": "#e23744", "$type": "color" }
+  },
+  "fontSize": {
+    "font-size-1": { "$value": { "value": 16, "unit": "px" }, "$type": "dimension" },
+    "font-size-2": { "$value": { "value": 20, "unit": "px" }, "$type": "dimension" }
+  }
+}
+```
+
+Full document: [`examples/design-tokens.json`](./examples/design-tokens.json).
+
+## Use cases
+
+- **Redesign from truth.** Capture an existing site's real palette and scales
+  so a rebuild starts from what users actually see, not a guess.
+- **Audit a design system's drift.** Surface how many near-duplicate colors and
+  off-grid spacing values a live site has accumulated versus its intended scale.
+- **Seed `design-tokens.json`.** Get a W3C DTCG starting point for Style
+  Dictionary or any DTCG-aware tooling.
+- **Normalize scraped styles.** Turn raw computed-style dumps from your own
+  crawler into a deduplicated, structured token set.
+
+## Limitations
+
+Honest about the edges, since they affect output:
+
+- **No live extraction yet.** You supply the `PageExtract[]`. The browser-driven
+  crawler is the next package (see Roadmap).
+- **Color input is hex and `rgb()`/`rgba()`.** `hsl()`, `oklch()`, named colors,
+  and `color()` are not parsed yet and are dropped.
+- **Lengths are `px` and `rem` only.** `em`, `%`, `vw`, and keywords are dropped.
+- **Fully transparent paints (alpha 0) are dropped** from color tokens; alpha is
+  otherwise not part of the cluster identity, so opaque and semi-transparent
+  variants of the same RGB still merge.
+- **Color clustering is single-linkage**, so it chains transitively: across a
+  near-continuous gradient a cluster's perceptual spread can exceed the
+  threshold. Lower the ΔE threshold if that matters for your input.
+
 ## Roadmap
 
-Two-package shape — a zero-dependency **core** (pure token math) and an
-**extract** package that drives a headless browser. Full detail in
+Two-package shape: a zero-dependency core (pure token math) and an extract
+package that drives a headless browser. Full detail in
 [ROADMAP.md](./ROADMAP.md); design in [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 **Core (`tokenscout`, zero deps):**
-- [x] Color — parse, sRGB→Lab, ΔE76, perceptual clustering
+- [x] Color: parse, sRGB→Lab, ΔE76, perceptual clustering
 - [x] Tests + CI
 - [x] Type scale reducer
 - [x] Spacing scale reducer
@@ -82,16 +161,16 @@ Two-package shape — a zero-dependency **core** (pure token math) and an
 **Extract (`@tokenscout/extract`, Playwright peer):**
 - [ ] Live crawl + computed-style extraction at breakpoints
 - [ ] Image / asset harvesting (manifest + files, for redesign migration)
-- [ ] Animation capture — CSS `@keyframes`/transition tokens + Lottie download
+- [ ] Animation capture: CSS `@keyframes`/transition tokens + Lottie download
       + library detection + motion-reference video, up to runtime WAAPI/rAF
       instrumentation of JS-driven motion (research tier)
 
 **Release:**
-- [ ] Publish core to npm (`0.1.x`)
+- [x] Publish core to npm (`0.1.x`), live: https://www.npmjs.com/package/tokenscout
 
 ## Contributing
 
-Issues and PRs welcome — especially around color science, CSS value parsing,
+Issues and PRs welcome, especially around color science, CSS value parsing,
 and token-scale heuristics. This is an open-core project; the synthesis and
 reporting layers on top of it are separate.
 

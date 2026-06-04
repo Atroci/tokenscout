@@ -52,7 +52,10 @@ function buildColorGroup(
   for (const page of pages) {
     for (const obs of page.colors) {
       const parsed = parseColor(obs.value);
-      if (parsed) {
+      // Drop fully transparent paints: alpha 0 is never a brand token, and
+      // since clustering ignores alpha, a high-count transparent value could
+      // otherwise win as a cluster's canonical color.
+      if (parsed && parsed.alpha > 0) {
         inputs.push({ value: obs.value, rgb: parsed.rgb, count: obs.count });
       }
     }

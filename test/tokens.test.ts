@@ -114,6 +114,28 @@ test("assembleTokens: empty input yields an empty document", () => {
   assert.deepEqual(assembleTokens([]), {});
 });
 
+test("assembleTokens: a fully transparent paint never becomes a color token", () => {
+  // alpha 0 is not a brand color. Even outweighing the opaque value by count,
+  // it must not win as canonical: clustering ignores alpha, so it would
+  // otherwise collapse onto the same RGB and take the slot.
+  const withTransparent: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [
+        { value: "rgba(0, 0, 0, 0)", role: "background-color", count: 99 },
+        { value: "#e23744", role: "color", count: 4 },
+      ],
+      type: { sizes: [] },
+      spacing: { values: [] },
+    },
+  ];
+  const tokens = assembleTokens(withTransparent);
+  const color = tokens.color as Record<string, { $value: string }>;
+  assert.deepEqual(Object.keys(color), ["color-1"]);
+  assert.equal(color["color-1"].$value, "#e23744");
+});
+
 test("assembleTokens: drops unparseable colors (hsl/oklch not yet supported)", () => {
   const messy: PageExtract[] = [
     {

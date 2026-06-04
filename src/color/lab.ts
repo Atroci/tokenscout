@@ -1,8 +1,7 @@
 // sRGB → CIE Lab (D65) and ΔE76. Pure TypeScript, zero dependencies.
 //
-// Ported from the web-forensics color reducer. The math is inlined
-// intentionally — colormath is broken on NumPy 2.0+ and the formulas are
-// short enough to maintain directly. No runtime deps in JS either.
+// The math is inlined intentionally: the formulas are short enough to maintain
+// directly, and inlining keeps the package free of runtime dependencies.
 
 /** CIE Lab triple: [L*, a*, b*]. */
 export type Lab = readonly [L: number, a: number, b: number];
@@ -45,6 +44,12 @@ export function rgbToLab([r, g, b]: Rgb): Lab {
   const fy = fLab(y / YN);
   const fz = fLab(z / ZN);
   return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+/** Round a Lab triple to 2 decimal places, preserving the tuple type. */
+export function roundLab([L, a, b]: Lab): Lab {
+  const r = (v: number) => Math.round(v * 100) / 100;
+  return [r(L), r(a), r(b)];
 }
 
 /** Euclidean CIE76 color difference between two Lab values. */

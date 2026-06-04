@@ -1,0 +1,94 @@
+{
+  "color": {
+    "color-1": {
+      "$value": "#ffffff",
+      "$type": "color"
+    },
+    "color-2": {
+      "$value": "#111827",
+      "$type": "color"
+    },
+    "color-3": {
+      "$value": "#3a7bd5",
+      "$type": "color"
+    },
+    "color-4": {
+      "$value": "#e23744",
+      "$type": "color"
+    }
+  },
+  "fontSize": {
+    "font-size-1": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "font-size-2": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "font-size-3": {
+      "$value": {
+        "value": 25,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "font-size-4": {
+      "$value": {
+        "value": 31.25,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "font-size-5": {
+      "$value": {
+        "value": 39,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    }
+  },
+  "spacing": {
+    "spacing-1": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "spacing-2": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "spacing-3": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "spacing-4": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "spacing-5": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    }
+  }
+}

@@ -16,4 +16,9 @@ export default tseslint.config(
       "no-console": "warn",
     },
   },
+  {
+    // Example scripts are meant to be run and print their output.
+    files: ["examples/**/*.ts"],
+    rules: { "no-console": "off" },
+  },
 );

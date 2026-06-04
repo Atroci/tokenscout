@@ -41,10 +41,10 @@ Please allow a reasonable window for a fix before any public disclosure.
 
 ## Scope
 
-tokenscout is a **zero-runtime-dependency** TypeScript library. It performs
-pure color math (sRGB to CIELAB, ΔE, clustering) over values you pass in. It
-makes **no network calls, reads no files, and holds no secrets or
-credentials**. The most relevant classes of report are therefore:
+tokenscout is a zero-runtime-dependency TypeScript library. It performs pure
+color math (sRGB to CIELAB, ΔE, clustering) over values you pass in. It makes
+no network calls, reads no files, and holds no secrets or credentials. The
+most relevant classes of report are therefore:
 
 - correctness bugs that could be triggered into a crash or hang by crafted
   input (e.g. a malformed color string causing unbounded work),
@@ -53,7 +53,7 @@ credentials**. The most relevant classes of report are therefore:
 
 ## Supply chain
 
-- **Zero runtime dependencies** is an intentional security guarantee.
+- Zero runtime dependencies is an intentional security guarantee.
   Consumers inherit no transitive runtime risk. Adding a runtime dependency
   is treated as a security-relevant change, not a routine one.
 - The lockfile (`package-lock.json`) is committed.
