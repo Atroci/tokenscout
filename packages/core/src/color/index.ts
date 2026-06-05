@@ -6,3 +6,5 @@ export {
   type ColorInput,
   type Cluster,
 } from "./cluster.js";
+export { nearestNamedColor, NAMED_COLORS } from "./named.js";
+export { stableColorId, hashString } from "./id.js";

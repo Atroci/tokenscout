@@ -6,6 +6,8 @@ import {
   deltaE76,
   parseColor,
   clusterColors,
+  nearestNamedColor,
+  stableColorId,
   DEFAULT_DELTA_E,
 } from "../src/index.js";
 
@@ -89,6 +91,49 @@ test("parseColor: rejects junk, bad hex length, percentages", () => {
   assert.equal(parseColor("#xyzxyz"), null);
   // Percentage rgb() is not yet supported; documented as null.
   assert.equal(parseColor("rgb(50%, 0, 0)"), null);
+});
+
+test("parseColor: hsl() produces a sensible rgb (mid blue)", () => {
+  const p = parseColor("hsl(210, 50%, 50%)");
+  assert.ok(p);
+  // 210deg / 50% / 50% -> sRGB ~ (0.25, 0.5, 0.75): blue dominant, red least.
+  close(p.rgb[0], 0.25, 1e-3);
+  close(p.rgb[1], 0.5, 1e-3);
+  close(p.rgb[2], 0.75, 1e-3);
+  assert.ok(p.rgb[2] > p.rgb[1] && p.rgb[1] > p.rgb[0]);
+  assert.equal(p.alpha, 1);
+});
+
+test("parseColor: CSS named color (rebeccapurple)", () => {
+  const p = parseColor("rebeccapurple");
+  assert.ok(p);
+  close(p.rgb[0], 0.4, 1e-3);
+  close(p.rgb[1], 0.2, 1e-3);
+  close(p.rgb[2], 0.6, 1e-3);
+  assert.equal(p.alpha, 1);
+});
+
+test("parseColor: transparent keyword has alpha 0", () => {
+  const p = parseColor("transparent");
+  assert.ok(p);
+  assert.equal(p.alpha, 0);
+});
+
+test("parseColor: oklch() is still unsupported (null)", () => {
+  assert.equal(parseColor("oklch(0.7 0.1 200)"), null);
+});
+
+test("nearestNamedColor: pure red maps to 'red'", () => {
+  assert.equal(nearestNamedColor([1, 0, 0]), "red");
+});
+
+test("stableColorId: deterministic and of form name-hash", () => {
+  const id1 = stableColorId("#3a7bd5", "cornflowerblue");
+  const id2 = stableColorId("#3a7bd5", "cornflowerblue");
+  assert.equal(id1, id2);
+  assert.match(id1, /^cornflowerblue-[0-9a-z]{7}$/);
+  // Different canonical -> different hash suffix (stable per content).
+  assert.notEqual(stableColorId("#e23744", "crimson"), id1);
 });
 
 test("clusterColors: empty input returns empty", () => {

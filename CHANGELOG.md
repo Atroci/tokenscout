@@ -5,10 +5,32 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0]
 
 ### Added
 
+- Color parsing now covers `hsl()`/`hsla()` (comma and space syntax, optional
+  alpha) and the full set of CSS named colors (`transparent` → alpha 0). Hex and
+  `rgb()`/`rgba()` behavior is unchanged; `oklch()`, `lab()`/`lch()`, `hwb()`,
+  and `color()` still return `null`.
+- Color tokens now emit a DTCG structured `$value`
+  (`{ colorSpace: "srgb", components: [r, g, b], alpha }`) instead of a raw
+  string, with a `ColorValue` type added to `schema.ts`.
+- Color tokens carry `$extensions` metadata: `com.tokenscout.css-authored-as`
+  (the canonical authored value), `usage-count` (summed cluster count),
+  `css-properties` (sorted roles the color painted), `member-count`, and
+  `members` (the raw values that clustered together).
+- Stable, name-hinted color token ids: keys are now
+  `${nearestName}-${hash}` (e.g. `cornflowerblue-17rhtps`) via `stableColorId`
+  + `nearestNamedColor`, replacing the positional `color-N` keys so ids stay put
+  across runs and reordering. `Cluster` gains a `cssProperties` field and
+  `ColorInput` an optional `role`.
+- The `color` group carries sprawl audit metrics in group-level `$extensions`:
+  `com.tokenscout.analyzable` (distinct parseable strings), `unanalyzable`
+  (strings dropped, measured against tokenscout's own parser coverage),
+  `distinct` (perceptual clusters), and `sprawl-ratio` (`analyzable / distinct`;
+  `>1` signals near-duplicate redundancy). `TokenGroup` now allows a group-level
+  `$extensions`; per DTCG, `$`-prefixed members are metadata, not tokens.
 - `@tokenscout/extract` experimental (research-tier) motion capture, not part of
   `inspectSite`'s default output:
   - `detectPageMotion` / `detectMotion`: fingerprint animation libraries (GSAP,

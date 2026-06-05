@@ -24,6 +24,8 @@ export interface ColorInput {
   rgb: Rgb;
   /** Occurrence weight; the highest-count member becomes canonical. */
   count?: number;
+  /** CSS property this color was painted from, e.g. "color", "background-color". */
+  role?: string;
 }
 
 export interface Cluster {
@@ -33,6 +35,8 @@ export interface Cluster {
   members: string[];
   /** Summed count across all members. */
   totalCount: number;
+  /** Sorted, de-duplicated CSS properties (roles) across the cluster's members. */
+  cssProperties: string[];
   /** Lab of the canonical member, rounded to 2dp. */
   lab: Lab;
 }
@@ -96,6 +100,13 @@ export function clusterColors(
       canonical: canonical.value,
       members: [...new Set(members.map((m) => m.value))].sort(),
       totalCount: members.reduce((s, m) => s + (m.count ?? 0), 0),
+      cssProperties: [
+        ...new Set(
+          members
+            .map((m) => m.role)
+            .filter((r): r is string => r !== undefined),
+        ),
+      ].sort(),
       lab: roundLab(rgbToLab(canonical.rgb)),
     });
   }

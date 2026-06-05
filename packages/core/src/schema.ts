@@ -34,11 +34,19 @@ export interface PageExtract {
   spacing: SpacingObservation;
 }
 
+/** DTCG structured color value (sRGB). */
+export interface ColorValue {
+  colorSpace: "srgb";
+  components: [number, number, number];
+  alpha: number;
+}
+
 /** A single W3C DTCG token (minimal valid shape). */
 export interface DesignToken {
-  $value: string | DimensionValue | DurationValue;
+  $value: string | ColorValue | DimensionValue | DurationValue;
   $type: "color" | "dimension" | "duration";
   $description?: string;
+  $extensions?: Record<string, unknown>;
 }
 
 /** DTCG dimension value object. */
@@ -59,9 +67,13 @@ export interface AnimationInput {
   durations?: number[];
 }
 
-/** A DTCG group: either nested groups or leaf tokens. */
+/** A DTCG group: leaf tokens or nested groups, plus optional group-level
+ * `$extensions`. tokenscout emits color-sprawl audit metrics there (analyzable,
+ * unanalyzable, distinct, sprawl-ratio). Per DTCG, `$`-prefixed members are
+ * reserved metadata, not tokens — consumers counting tokens skip them. */
 export interface TokenGroup {
-  [key: string]: DesignToken | TokenGroup;
+  [key: string]: DesignToken | TokenGroup | Record<string, unknown> | undefined;
+  $extensions?: Record<string, unknown>;
 }
 
 /** The assembled design-token document, W3C DTCG-shaped. */
