@@ -39,6 +39,33 @@ jobs:
           npm run build -w tokenscout
           npm run test -w tokenscout
 
+      # Idempotent + resilient publish. A SUCCESSFUL publish must never go red.
+      # `npm publish` can exit non-zero on a transient post-publish confirmation
+      # 404 even though the package + provenance attestation landed (seen in
+      # v0.3.0). It also exits non-zero on EPUBLISHCONFLICT during a re-run.
+      # In both cases we cross-check the live registry: if the exact intended
+      # version is published, the run is a success.
       - name: Publish tokenscout with provenance
-        run: npm publish --provenance --access public
         working-directory: packages/core
+        run: |
+          set +e
+          npm publish --provenance --access public
+          code=$?
+          set -e
+
+          if [ "$code" -eq 0 ]; then
+            echo "npm publish exited cleanly."
+            exit 0
+          fi
+
+          echo "npm publish exited $code — cross-checking the registry before failing."
+          want=$(node -p "require('./package.json').version")
+          live=$(npm view "tokenscout@$want" version 2>/dev/null || true)
+
+          if [ "$live" = "$want" ]; then
+            echo "tokenscout@$want is live on the registry — the artifact published despite the transient error (exit $code). Treating as success."
+            exit 0
+          fi
+
+          echo "tokenscout@$want is NOT on the registry (npm view returned '${live:-<none>}') — this is a real failure."
+          exit "$code"
