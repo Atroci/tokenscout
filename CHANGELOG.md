@@ -5,6 +5,27 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed (tooling)
+
+- Hardened the `Release` workflow's npm publish step: publishing is now
+  idempotent (re-running a tag whose version is already on npm is a no-op
+  success, not a failure), and a transient `404` from the registry during the
+  post-publish availability check is treated as success rather than a failed
+  release.
+
+### Docs
+
+- Added a responsive + motion next-steps design doc and updated `ROADMAP`:
+  scopes per-breakpoint token identity (today all `PageExtract`s flatten into
+  one merged token set, dissolving mobile vs desktop differences) and the
+  Phase 4 motion differentiators (library detection, WAAPI timelines, Lottie
+  download, scroll-driven capture, motion-reference video). Docs only — no
+  package code change yet. (Note: the private parent `web-forensics` pipeline's
+  "CSS-only animation, no JS anim libs" decision is its own boundary and does
+  not constrain tokenscout's roadmap.)
+
 ## [0.3.0]
 
 ### Added
@@ -124,6 +145,7 @@ First open-core release: the zero-dependency color layer, tested and CI-gated.
 - Project docs: `README`, `CONTRIBUTING`, `CODE_OF_CONDUCT`, `SECURITY`,
   `ROADMAP`, `ARCHITECTURE`, issue/PR templates.
 
-[Unreleased]: https://github.com/Atroci/tokenscout/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Atroci/tokenscout/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Atroci/tokenscout/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Atroci/tokenscout/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Atroci/tokenscout/releases/tag/v0.1.0

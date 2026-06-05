@@ -245,6 +245,10 @@ Honest about the edges, since they affect output:
 - **Color clustering is single-linkage**, so it chains transitively: across a
   near-continuous gradient a cluster's perceptual spread can exceed the
   threshold. Lower the ΔE threshold if that matters for your input.
+- **No per-breakpoint or per-theme identity.** Extracts from every breakpoint
+  are flattened into one token set, so mobile/desktop differences dissolve, and
+  light/dark themes are not captured separately. Both are next-focus work (see
+  Roadmap).
 
 ## Roadmap
 
@@ -265,6 +269,11 @@ package that drives a headless browser. Full detail in
 - [ ] Animation capture: CSS `@keyframes`/transition tokens + Lottie download
       + library detection + motion-reference video, up to runtime WAAPI/rAF
       instrumentation of JS-driven motion (research tier)
+- [ ] Responsive / multi-screen capture: configurable breakpoints, light/dark
+      dual palette, and per-breakpoint token identity (currently flattened)
+
+Next focus is responsive multi-screen capture and refined motion capture —
+plan in [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-and-motion.md).
 
 **Release:**
 - [x] Publish core to npm (`0.1.x`), live: https://www.npmjs.com/package/tokenscout

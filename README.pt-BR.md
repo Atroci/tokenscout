@@ -25,8 +25,8 @@ Dois pacotes:
   todas implementadas e testadas.
 - **`@tokenscout/extract`**, que controla um navegador headless (Playwright) para
   coletar essas observações de uma URL no ar: estilos computados em um ou mais
-  breakpoints, com crawling opcional de mesma origem. Coleta de imagens e captura
-  de animação ainda estão no roadmap.
+  breakpoints, com crawling opcional de mesma origem. A coleta de imagens e a
+  captura de animação ainda estão no roadmap.
 
 Ou seja, você pode fornecer as observações por conta própria (seu próprio
 crawler, ou na mão) ou deixar o `@tokenscout/extract` lê-las de uma página no
@@ -41,6 +41,10 @@ ar. Design e status em [ARCHITECTURE.md](./ARCHITECTURE.md) e
   três strings, mas uma só cor. O tokenscout as clusteriza em CIELAB por ΔE76,
   então uma paleta declarada extensa colapsa para o punhado de cores que o site
   realmente usa (no exemplo abaixo: 9 declaradas para 4 reais).
+- **IDs de token estáveis, com pista de nome.** Os tokens de cor são chaveados por
+  um hash de conteúdo do valor canônico mais o nome de cor CSS mais próximo (ex.:
+  `cornflowerblue-17rhtps`), então os IDs permanecem fixos entre execuções e um
+  diff de tokens reflete mudança real de paleta, não rotatividade de lista.
 - **Zero dependências em tempo de execução.** A matemática de cor tem ~120 linhas
   de TypeScript puro (sRGB→Lab, ΔE76, single-linkage union-find). Sem dependências
   nativas.
@@ -77,6 +81,48 @@ const tokens = await extractTokens("https://example.com", {
 
 `extractSite(url, opts)` também é exportado, caso você queira o `PageExtract[]`
 bruto antes da redução.
+
+Para o pacote completo de redesign em uma única chamada, use `inspectSite`:
+
+```ts
+import { inspectSite } from "@tokenscout/extract";
+
+const report = await inspectSite("https://example.com", {
+  breakpoints: [1280, 375],
+  top: 5,
+  sitemap: true, // descobre páginas pelo sitemap.xml em vez de seguir links
+});
+
+report.tokens; // documento DTCG (color, fontSize, spacing e um grupo duration)
+report.assets; // manifesto de imagens/recursos resolvido e deduplicado
+report.animations; // durações CSS (ms), easings, nomes de @keyframes
+report.stack; // frameworks detectados com nível de confiança
+```
+
+Para copiar as imagens do site para um redesign, baixe o manifesto para o disco:
+
+```ts
+import { downloadAssets } from "@tokenscout/extract";
+
+await downloadAssets(report.assets, "./out/assets"); // grava arquivos + manifest.json
+```
+
+Os coletores individuais (`discoverAssets`, `extractAnimations`, `profilePage`,
+`discoverSitemapUrls`) também são exportados, caso você queira rodá-los sobre o
+seu próprio `page`.
+
+### Experimental: movimento dirigido por JS
+
+Best-effort, em camada de pesquisa, e fora da saída padrão do `inspectSite`:
+
+```ts
+import { detectPageMotion, captureMotion } from "@tokenscout/extract";
+
+const libs = await detectPageMotion(page); // GSAP / Framer / AOS / Lottie ...
+// captureMotion envolve Element.animate antes da navegação, então chame numa página nova:
+const motion = await captureMotion(freshPage, "https://example.com");
+// { count, durations (ms), easings, properties } capturados da Web Animations API
+```
 
 ### A partir de observações que você já tem
 
@@ -131,15 +177,35 @@ exportados.
 ## Resultados
 
 O exemplo acima, passado por `assembleTokens`, colapsa 9 cores declaradas em 4
-reais e emite escalas tipográficas e de espaçamento limpas:
+reais e emite escalas tipográficas e de espaçamento limpas. O grupo `color`
+registra esse colapso como uma **métrica de sprawl** auditável nos `$extensions`
+de nível de grupo (`9 analisáveis → 4 distintas = 2.25×`), e cada token de cor
+tem um ID estável com pista de nome, um `$value` estruturado no padrão DTCG e
+metadados em `$extensions` (como foi declarado no CSS, com que frequência foi
+usado, em quais propriedades CSS pintou e os membros brutos que se agruparam
+nele):
 
 ```json
 {
   "color": {
-    "color-1": { "$value": "#ffffff", "$type": "color" },
-    "color-2": { "$value": "#111827", "$type": "color" },
-    "color-3": { "$value": "#3a7bd5", "$type": "color" },
-    "color-4": { "$value": "#e23744", "$type": "color" }
+    "$extensions": {
+      "com.tokenscout.analyzable": 9,
+      "com.tokenscout.unanalyzable": 0,
+      "com.tokenscout.distinct": 4,
+      "com.tokenscout.sprawl-ratio": 2.25
+    },
+    "cornflowerblue-17rhtps": {
+      "$value": { "colorSpace": "srgb", "components": [0.22745, 0.48235, 0.83529], "alpha": 1 },
+      "$type": "color",
+      "$extensions": {
+        "com.tokenscout.css-authored-as": "#3a7bd5",
+        "com.tokenscout.usage-count": 50,
+        "com.tokenscout.css-properties": ["background-color", "border-color", "color"],
+        "com.tokenscout.member-count": 4,
+        "com.tokenscout.members": ["#3A7BD4", "#3a7bd5", "#3b7cd6", "rgb(58, 123, 213)"]
+      }
+    }
+    // ... white-0z2ixva, black-0ugpfk2, crimson-09p9vbj omitidos
   },
   "fontSize": {
     "font-size-1": { "$value": { "value": 16, "unit": "px" }, "$type": "dimension" },
@@ -167,11 +233,21 @@ Documento completo: [`packages/core/examples/design-tokens.json`](./packages/cor
 
 Honesto quanto às bordas, porque elas afetam a saída:
 
-- **A extração é só de estilos computados, por enquanto.** O `@tokenscout/extract`
-  lê cor, tipografia e espaçamento em breakpoints com crawling opcional de mesma
-  origem. Coleta de imagens e captura de animação ainda estão no roadmap.
-- **A entrada de cor é hex e `rgb()`/`rgba()`.** `hsl()`, `oklch()`, cores
-  nomeadas e `color()` ainda não são parseadas e são descartadas.
+- **A captura de movimento via JS é experimental.** O `@tokenscout/extract` lê
+  cor/tipografia/espaçamento, um manifesto de recursos (`downloadAssets` baixa
+  para o disco), tokens de animação CSS e um perfil de stack técnica. Como extras
+  **experimentais**, ele também faz fingerprint de bibliotecas de animação
+  (`detectPageMotion`) e captura movimento da Web Animations API (`captureMotion`,
+  envolvendo `Element.animate`). Esses recursos são best-effort e ficam fora da
+  saída padrão do `inspectSite`. Ainda no roadmap: amostrar movimento dirigido por
+  rAF que escapa da WAAPI, baixar o JSON do Lottie e gerar vídeo de referência de
+  movimento.
+- **Os tokens de movimento são só durações (no grupo DTCG `duration`).** Easings
+  e nomes de `@keyframes` são reportados no campo `animations` do `inspectSite`,
+  mas ainda não são emitidos como tokens DTCG.
+- **A entrada de cor é hex, `rgb()`/`rgba()`, `hsl()`/`hsla()` e cores nomeadas
+  do CSS.** `oklch()`, `lab()`/`lch()`, `hwb()` e `color()` ainda não são parseadas
+  e são descartadas.
 - **Comprimentos são só `px` e `rem`.** `em`, `%`, `vw` e palavras-chave são
   descartados.
 - **Pinturas totalmente transparentes (alpha 0) são descartadas** dos tokens de
@@ -181,6 +257,10 @@ Honesto quanto às bordas, porque elas afetam a saída:
   ao longo de um gradiente quase contínuo a dispersão perceptual de um cluster
   pode exceder o limite. Use um limite ΔE menor se isso importar para a sua
   entrada.
+- **Sem identidade por breakpoint ou por tema.** As extrações de todos os
+  breakpoints são achatadas em um único conjunto de tokens, então as diferenças
+  entre mobile e desktop se dissolvem, e temas claro/escuro não são capturados
+  separadamente. Ambos são o próximo foco de trabalho (ver Roadmap).
 
 ## Roadmap
 
@@ -202,9 +282,15 @@ um pacote de extração que controla um navegador headless. Detalhe completo em
       Lottie + detecção de biblioteca + vídeo de referência de movimento, até
       instrumentação WAAPI/rAF em tempo de execução de movimento dirigido por JS
       (camada de pesquisa)
+- [ ] Captura responsiva / multi-tela: breakpoints configuráveis, paleta dupla
+      claro/escuro e identidade de token por breakpoint (atualmente achatada)
+
+O próximo foco é a captura responsiva multi-tela e a captura de movimento
+refinada — plano em
+[docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-and-motion.md).
 
 **Release:**
-- [ ] Publicar o core no npm (`0.1.x`)
+- [x] Publicar o core no npm (`0.1.x`), no ar: https://www.npmjs.com/package/tokenscout
 
 ## Contribuindo
 
