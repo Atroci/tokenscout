@@ -94,5 +94,100 @@ test("reduceAnimationTokens: empty input yields empty arrays", () => {
     easings: [],
     keyframes: [],
   });
-  assert.deepEqual(tokens, { durations: [], easings: [], keyframes: [] });
+  assert.deepEqual(tokens, {
+    durations: [],
+    easings: [],
+    keyframes: [],
+    properties: { composited: [], paint: [], layout: [] },
+    reducedMotion: { declared: false, gap: false },
+  });
+});
+
+test("reduceAnimationTokens: flags a coverage gap when motion has no reduced-motion guard", () => {
+  const tokens = reduceAnimationTokens({
+    durations: ["0.3s"],
+    easings: [],
+    keyframes: [],
+    properties: ["transform"],
+    reducedMotionDeclared: false,
+  });
+  assert.deepEqual(tokens.reducedMotion, { declared: false, gap: true });
+});
+
+test("reduceAnimationTokens: no gap when a reduced-motion guard is declared", () => {
+  const tokens = reduceAnimationTokens({
+    durations: ["0.3s"],
+    easings: [],
+    keyframes: [],
+    properties: ["transform"],
+    reducedMotionDeclared: true,
+  });
+  assert.deepEqual(tokens.reducedMotion, { declared: true, gap: false });
+});
+
+test("reduceAnimationTokens: no gap when the page has no motion (unused keyframes don't count)", () => {
+  const tokens = reduceAnimationTokens({
+    durations: [],
+    easings: [],
+    keyframes: ["spin"],
+    reducedMotionDeclared: false,
+  });
+  assert.deepEqual(tokens.reducedMotion, { declared: false, gap: false });
+});
+
+test("reduceAnimationTokens: classifies animated properties by render cost", () => {
+  const tokens = reduceAnimationTokens({
+    durations: [],
+    easings: [],
+    keyframes: [],
+    properties: ["transform", "opacity", "width", "top", "color", "box-shadow"],
+  });
+  // transform/opacity composite; width/top force layout; color/box-shadow paint.
+  assert.deepEqual(tokens.properties, {
+    composited: ["opacity", "transform"],
+    paint: ["box-shadow", "color"],
+    layout: ["top", "width"],
+  });
+});
+
+test("reduceAnimationTokens: de-dupes, lower-cases, and strips vendor prefixes", () => {
+  const tokens = reduceAnimationTokens({
+    durations: [],
+    easings: [],
+    keyframes: [],
+    properties: ["Transform", "-webkit-transform", "transform", "MARGIN-TOP"],
+  });
+  assert.deepEqual(tokens.properties, {
+    composited: ["transform"],
+    paint: [],
+    layout: ["margin-top"],
+  });
+});
+
+test("reduceAnimationTokens: ignores no-op property keywords (all/none/blank)", () => {
+  const tokens = reduceAnimationTokens({
+    durations: [],
+    easings: [],
+    keyframes: [],
+    properties: ["all", "none", "", "  ", "opacity"],
+  });
+  assert.deepEqual(tokens.properties, {
+    composited: ["opacity"],
+    paint: [],
+    layout: [],
+  });
+});
+
+test("reduceAnimationTokens: unknown properties default to paint, not layout", () => {
+  const tokens = reduceAnimationTokens({
+    durations: [],
+    easings: [],
+    keyframes: [],
+    properties: ["clip-path", "--custom-prop"],
+  });
+  assert.deepEqual(tokens.properties, {
+    composited: [],
+    paint: ["--custom-prop", "clip-path"],
+    layout: [],
+  });
 });

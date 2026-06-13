@@ -119,8 +119,105 @@ test("parseColor: transparent keyword has alpha 0", () => {
   assert.equal(p.alpha, 0);
 });
 
-test("parseColor: oklch() is still unsupported (null)", () => {
-  assert.equal(parseColor("oklch(0.7 0.1 200)"), null);
+test("parseColor: lab() reference white and red", () => {
+  const white = parseColor("lab(100 0 0)");
+  assert.ok(white);
+  close(white.rgb[0] * 255, 255, 1);
+  close(white.rgb[1] * 255, 255, 1);
+  close(white.rgb[2] * 255, 255, 1);
+
+  // sRGB red ~ lab(53.24 80.09 67.20).
+  const red = parseColor("lab(53.24 80.09 67.20)");
+  assert.ok(red);
+  close(red.rgb[0] * 255, 255, 2);
+  close(red.rgb[1] * 255, 0, 3);
+  close(red.rgb[2] * 255, 0, 3);
+});
+
+test("parseColor: lch() red matches its lab() polar form", () => {
+  // C = hypot(80.09, 67.20) ~ 104.55, H = atan2(67.20, 80.09) ~ 40deg.
+  const red = parseColor("lch(53.24 104.55 40)");
+  assert.ok(red);
+  close(red.rgb[0] * 255, 255, 2);
+  close(red.rgb[1] * 255, 0, 3);
+  close(red.rgb[2] * 255, 0, 3);
+});
+
+test("parseColor: oklch() white, black, and red (Tailwind v4's default space)", () => {
+  const white = parseColor("oklch(1 0 0)");
+  assert.ok(white);
+  close(white.rgb[0] * 255, 255, 1);
+  close(white.rgb[1] * 255, 255, 1);
+  close(white.rgb[2] * 255, 255, 1);
+
+  const black = parseColor("oklch(0 0 0)");
+  assert.ok(black);
+  close(black.rgb[0] * 255, 0, 1);
+
+  // sRGB red ~ oklch(0.628 0.2577 29.23).
+  const red = parseColor("oklch(0.628 0.2577 29.23)");
+  assert.ok(red);
+  assert.ok(red.rgb[0] > red.rgb[1] && red.rgb[0] > red.rgb[2], "red dominant");
+  close(red.rgb[0] * 255, 255, 4);
+  close(red.rgb[1] * 255, 0, 5);
+});
+
+test("parseColor: oklab() red ~ oklch() red (rectangular vs polar)", () => {
+  const a = parseColor("oklab(0.628 0.2249 0.1258)");
+  const b = parseColor("oklch(0.628 0.2577 29.23)");
+  assert.ok(a && b);
+  close(a.rgb[0], b.rgb[0], 0.02);
+  close(a.rgb[1], b.rgb[1], 0.02);
+  close(a.rgb[2], b.rgb[2], 0.02);
+});
+
+test("parseColor: hwb() pure hue, white, black, and turn-angle hue", () => {
+  const red = parseColor("hwb(0 0% 0%)");
+  assert.ok(red);
+  close(red.rgb[0] * 255, 255, 1);
+  close(red.rgb[1] * 255, 0, 1);
+  close(red.rgb[2] * 255, 0, 1);
+
+  const white = parseColor("hwb(0 100% 0%)");
+  assert.ok(white);
+  close(white.rgb[0] * 255, 255, 1);
+  close(white.rgb[2] * 255, 255, 1);
+
+  const black = parseColor("hwb(0 0% 100%)");
+  assert.ok(black);
+  close(black.rgb[0] * 255, 0, 1);
+
+  // 0.5turn = 180deg = cyan.
+  const cyan = parseColor("hwb(0.5turn 0% 0%)");
+  assert.ok(cyan);
+  close(cyan.rgb[0] * 255, 0, 1);
+  close(cyan.rgb[1] * 255, 255, 1);
+  close(cyan.rgb[2] * 255, 255, 1);
+});
+
+test("parseColor: modern functions parse alpha (/ A) and 'none' channels", () => {
+  const a = parseColor("oklch(0.7 0.1 200 / 0.5)");
+  assert.ok(a);
+  close(a.alpha, 0.5, 1e-6);
+
+  const pct = parseColor("oklch(0.7 0.1 200 / 50%)");
+  assert.ok(pct);
+  close(pct.alpha, 0.5, 1e-6);
+
+  const none = parseColor("oklch(none 0 0)");
+  assert.ok(none);
+  close(none.rgb[0] * 255, 0, 1); // L=0 -> black
+});
+
+test("parseColor: out-of-gamut oklch is clamped into 0..1", () => {
+  const p = parseColor("oklch(0.9 0.4 140)"); // very saturated green, beyond sRGB
+  assert.ok(p);
+  for (const c of p.rgb) assert.ok(c >= 0 && c <= 1, `channel ${c} in gamut`);
+});
+
+test("parseColor: color() remains unsupported (null)", () => {
+  assert.equal(parseColor("color(srgb 1 0 0)"), null);
+  assert.equal(parseColor("color(display-p3 1 0 0)"), null);
 });
 
 test("nearestNamedColor: pure red maps to 'red'", () => {

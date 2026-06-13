@@ -230,14 +230,14 @@ test("assembleTokens: hsl() colors are now parsed into a token", () => {
   assert.ok(Math.abs(b - 0.75) < 1e-3, `b ${b}`);
 });
 
-test("assembleTokens: still drops oklch()/lab() unsupported colors", () => {
+test("assembleTokens: parses modern color functions, still drops color()", () => {
   const messy: PageExtract[] = [
     {
       url: "https://example.com/",
       breakpoint: 1280,
       colors: [
         { value: "oklch(0.7 0.1 200)", role: "color", count: 9 },
-        { value: "lab(50% 40 59.5)", role: "color", count: 7 },
+        { value: "color(display-p3 1 0 0)", role: "color", count: 7 },
         { value: "#e23744", role: "color", count: 4 },
       ],
       type: { sizes: [] },
@@ -246,10 +246,9 @@ test("assembleTokens: still drops oklch()/lab() unsupported colors", () => {
   ];
   const tokens = assembleTokens(messy);
   const color = tokens.color as Record<string, ColorToken>;
-  // Only the hex red parses; oklch()/lab() fall through to null and are dropped.
-  assert.equal(tokenKeys(color).length, 1);
-  const [, only] = tokenEntries(color)[0];
-  assert.equal(only.$extensions["com.tokenscout.css-authored-as"], "#e23744");
+  // oklch() (teal) and the hex red now parse into two distinct clusters;
+  // color() falls through to null and is dropped.
+  assert.equal(tokenKeys(color).length, 2);
 });
 
 test("assembleTokens: color group carries sprawl audit metrics in $extensions", () => {
@@ -272,7 +271,7 @@ test("assembleTokens: sprawl metrics count unparseable colors as unanalyzable", 
       breakpoint: 1280,
       colors: [
         { value: "oklch(0.7 0.1 200)", role: "color", count: 9 },
-        { value: "lab(50% 40 59.5)", role: "color", count: 7 },
+        { value: "color(display-p3 1 0 0)", role: "color", count: 7 },
         { value: "#e23744", role: "color", count: 4 },
       ],
       type: { sizes: [] },
@@ -282,9 +281,10 @@ test("assembleTokens: sprawl metrics count unparseable colors as unanalyzable", 
   const ext = (assembleTokens(messy).color as Record<string, unknown>)[
     "$extensions"
   ] as Record<string, number>;
-  assert.equal(ext["com.tokenscout.analyzable"], 1);
-  assert.equal(ext["com.tokenscout.unanalyzable"], 2);
-  assert.equal(ext["com.tokenscout.distinct"], 1);
+  // oklch() + hex parse into two clusters; color() is the only drop.
+  assert.equal(ext["com.tokenscout.analyzable"], 2);
+  assert.equal(ext["com.tokenscout.unanalyzable"], 1);
+  assert.equal(ext["com.tokenscout.distinct"], 2);
   assert.equal(ext["com.tokenscout.sprawl-ratio"], 1);
 });
 

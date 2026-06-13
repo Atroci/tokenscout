@@ -94,6 +94,8 @@ const EMPTY_ANIMATIONS: AnimationTokens = {
   durations: [],
   easings: [],
   keyframes: [],
+  properties: { composited: [], paint: [], layout: [] },
+  reducedMotion: { declared: false, gap: false },
 };
 
 /**
@@ -196,12 +198,16 @@ export {
   type DownloadOptions,
 } from "./download-assets.js";
 
-// CSS animation tokens (durations, easings, @keyframes names).
+// CSS animation tokens (durations, easings, @keyframes names) + animated-property
+// performance classification (compositor / paint / layout smells) + reduced-motion
+// accessibility coverage (WCAG 2.3.3).
 export {
   reduceAnimationTokens,
   extractAnimations,
   type RawAnimations,
   type AnimationTokens,
+  type AnimatedProperties,
+  type ReducedMotionCoverage,
 } from "./animations.js";
 
 // Tech-stack fingerprinting (frameworks + generator + evidence).

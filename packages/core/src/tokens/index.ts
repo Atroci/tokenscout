@@ -83,7 +83,8 @@ function buildColorGroup(
   const inputs: ColorInput[] = [];
   // Sprawl audit: count DISTINCT authored color strings we could vs. could not
   // turn into tokens. Honest about tokenscout's OWN parser coverage (hex / rgb /
-  // hsl / named), not colorjs.io's — a color we now parse is no longer a "drop".
+  // hsl / named / oklch / oklab / lab / lch / hwb; color() is still a drop), not
+  // colorjs.io's — a color we now parse is no longer a "drop".
   const analyzableValues = new Set<string>();
   const unanalyzableValues = new Set<string>();
   for (const page of pages) {

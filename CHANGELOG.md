@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Color parsing now covers the CSS Color 4 function forms `oklch()`, `oklab()`,
+  `lab()`, `lch()`, and `hwb()` (converted to sRGB; `oklch()` is the Tailwind v4
+  default space). Components accept numbers or percentages, an optional `/ alpha`,
+  `none` channels, and angles in deg/grad/rad/turn; out-of-sRGB-gamut results are
+  clamped per channel (full gamut mapping is deferred). Previously these returned
+  `null` and the colors were silently dropped from the token set. `color()` — the
+  parameterized multi-colorspace form — is still unsupported and returns `null`.
+- Animation tokens now classify every animated property by render cost
+  (`AnimationTokens.properties`: `composited` / `paint` / `layout`), following
+  the web.dev high-performance-animation taxonomy. Compositor-only properties
+  (`transform`, `opacity`, `filter`, …) are cheap; animating paint properties
+  (`color`, `box-shadow`, …) forces a repaint, and animating layout properties
+  (`width`, `top`, `margin`, …) forces a reflow every frame — the latter two are
+  performance smells. Property names are read from `transition-property` and from
+  the steps of `@keyframes` that an element actually applies (unused keyframes
+  are ignored); they are lower-cased, vendor-prefix-stripped, and de-duplicated.
+  This is analysis Project Wallace's CSS analyzer does not perform.
+- Animation tokens now report reduced-motion accessibility coverage
+  (`AnimationTokens.reducedMotion`: `{ declared, gap }`). `declared` is true when
+  the page declares a `@media (prefers-reduced-motion: ...)` guard in any
+  reachable stylesheet (WCAG 2.3.3, sufficient technique C39); `gap` is true when
+  the page animates but declares no such guard. It is a coverage signal, not a
+  hard conformance verdict — a declared guard is not proof every animation backs
+  off (behavioral confirmation under emulated reduced-motion is a later step).
+
 ### Changed (tooling)
 
 - Hardened the `Release` workflow's npm publish step: publishing is now
