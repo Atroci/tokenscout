@@ -49,3 +49,20 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Publish @tokenscout/extract after core (depends on tokenscout@^0.x).
+      - name: Build + typecheck extract
+        run: |
+          npm run build -w @tokenscout/extract
+          npm run typecheck -w @tokenscout/extract
+
+      - name: Publish @tokenscout/extract (skip if already on npm)
+        run: |
+          VER="$(node -p "require('./packages/extract/package.json').version")"
+          if npm view "@tokenscout/extract@${VER}" version >/dev/null 2>&1; then
+            echo "@tokenscout/extract@${VER} is already published. Skipping."
+          else
+            npm publish -w @tokenscout/extract --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

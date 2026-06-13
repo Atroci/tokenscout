@@ -69,3 +69,36 @@ jobs:
 
           echo "tokenscout@$want is NOT on the registry (npm view returned '${live:-<none>}') — this is a real failure."
           exit "$code"
+
+      # Publish @tokenscout/extract after core (it depends on tokenscout@^0.x).
+      # CI runs the browser smoke tests on every push/PR for this commit, so the
+      # publish gate stays at build + typecheck here (no Chromium needed).
+      - name: Build + typecheck extract
+        run: |
+          npm run build -w @tokenscout/extract
+          npm run typecheck -w @tokenscout/extract
+
+      - name: Publish @tokenscout/extract with provenance
+        working-directory: packages/extract
+        run: |
+          set +e
+          npm publish --provenance --access public
+          code=$?
+          set -e
+
+          if [ "$code" -eq 0 ]; then
+            echo "npm publish exited cleanly."
+            exit 0
+          fi
+
+          echo "npm publish exited $code — cross-checking the registry before failing."
+          want=$(node -p "require('./package.json').version")
+          live=$(npm view "@tokenscout/extract@$want" version 2>/dev/null || true)
+
+          if [ "$live" = "$want" ]; then
+            echo "@tokenscout/extract@$want is live on the registry — treating as success."
+            exit 0
+          fi
+
+          echo "@tokenscout/extract@$want is NOT on the registry (npm view returned '${live:-<none>}') — this is a real failure."
+          exit "$code"
