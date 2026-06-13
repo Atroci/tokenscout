@@ -1,6 +1,6 @@
 {
   "name": "@tokenscout/extract",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Drive a headless browser to extract design-token observations from a live URL, for tokenscout.",
   "type": "module",
   "types": "./dist/index.d.ts",
