@@ -204,11 +204,29 @@ export {
 export {
   reduceAnimationTokens,
   extractAnimations,
+  classifyProperties,
   type RawAnimations,
   type AnimationTokens,
   type AnimatedProperties,
   type ReducedMotionCoverage,
 } from "./animations.js";
+
+// Runtime motion via the Web Animations API (catches JS-driven / WAAPI motion
+// the static CSS read misses), classified with the same perf-smell taxonomy.
+export {
+  extractRuntimeMotion,
+  type RuntimeAnimation,
+  type RuntimeMotion,
+} from "./runtime-motion.js";
+
+// Minimal "rendering input for analysis" capture worker: full-page screenshots +
+// runtime-motion snapshots per (URL, theme) written to a plain filesystem dir.
+export {
+  captureSite,
+  type CaptureOptions,
+  type ThemeCapture,
+  type CaptureReport,
+} from "./capture.js";
 
 // Tech-stack fingerprinting (frameworks + generator + evidence).
 export {

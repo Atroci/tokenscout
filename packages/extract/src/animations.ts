@@ -182,7 +182,7 @@ const NOOP_PROPERTIES = new Set([
  * "transform"), and de-duplicated. Unknown properties default to "paint": they
  * repaint, but we do not claim a reflow we cannot prove from the taxonomy.
  */
-function classifyProperties(names: string[]): AnimatedProperties {
+export function classifyProperties(names: string[]): AnimatedProperties {
   const composited = new Set<string>();
   const paint = new Set<string>();
   const layout = new Set<string>();

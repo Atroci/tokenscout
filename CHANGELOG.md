@@ -33,6 +33,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the page animates but declares no such guard. It is a coverage signal, not a
   hard conformance verdict — a declared guard is not proof every animation backs
   off (behavioral confirmation under emulated reduced-motion is a later step).
+- Runtime motion capture via the Web Animations API (`extractRuntimeMotion`):
+  snapshots every live animation from `document.getAnimations()` — including
+  JS-driven / WAAPI (`element.animate()`) motion that never appears as a CSS
+  transition/animation longhand — with each animation's animated properties,
+  duration, and play state, and an aggregate compositor/paint/layout
+  classification reusing the same performance-smell taxonomy.
+- Minimal "rendering input for analysis" capture worker (`captureSite`): drives
+  Playwright in-process (one recycled browser context per URL × theme) to write a
+  full-page screenshot plus a runtime-motion snapshot for light and dark
+  (`prefers-color-scheme`) states to a plain filesystem directory, with a
+  `capture.json` manifest. Docker-safe launch (`--disable-dev-shm-usage`); no
+  external browser service, queue, or object storage (each deferred behind a
+  concrete trigger).
 
 ### Changed (tooling)
 
