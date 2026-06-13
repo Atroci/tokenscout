@@ -43,9 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Playwright in-process (one recycled browser context per URL × theme) to write a
   full-page screenshot plus a runtime-motion snapshot for light and dark
   (`prefers-color-scheme`) states to a plain filesystem directory, with a
-  `capture.json` manifest. Docker-safe launch (`--disable-dev-shm-usage`); no
-  external browser service, queue, or object storage (each deferred behind a
-  concrete trigger).
+  `capture.json` manifest. Scrolls through reveal-on-scroll / lazy content and
+  settles before the screenshot (`scroll` / `settleMs` options) so
+  IntersectionObserver-driven pages don't capture blank. Docker-safe launch
+  (`--disable-dev-shm-usage`); no external browser service, queue, or object
+  storage (each deferred behind a concrete trigger).
 
 ### Changed (tooling)
 
