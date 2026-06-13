@@ -30,7 +30,7 @@
     "directory": "packages/extract"
   },
   "dependencies": {
-    "tokenscout": "^0.3.0"
+    "tokenscout": "^0.4.0"
   },
   "peerDependencies": {
     "playwright": ">=1.40"
