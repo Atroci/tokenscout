@@ -6,6 +6,14 @@
   </head>
   <body>
     <div class="box">animate me</div>
+    <!-- Hover-only target: mimics Framer Motion whileHover. Its .animate() call
+         fires only on a real pointerenter, with a baked linear() spring easing. -->
+    <div
+      class="hover-target"
+      style="width: 160px; height: 160px; cursor: pointer; background: #333"
+    >
+      hover me
+    </div>
     <script>
       // JS-driven motion via the Web Animations API, fired on load.
       document.querySelector(".box").animate(
@@ -13,6 +21,15 @@
         { duration: 400, easing: "ease-out" },
       );
       document.body.animate([{ opacity: 0.5 }, { opacity: 1 }], 250);
+
+      // Gesture motion: fires only when a real pointer enters the element.
+      const ht = document.querySelector(".hover-target");
+      ht.addEventListener("pointerenter", () => {
+        ht.animate(
+          [{ transform: "scale(1)" }, { transform: "scale(1.08)" }],
+          { duration: 333, easing: "linear(0, 0.4, 0.72, 0.9, 1)" },
+        );
+      });
     </script>
   </body>
 </html>

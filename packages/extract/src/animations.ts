@@ -84,6 +84,20 @@ export interface AnimationTokens {
 const NOOP_EASINGS = new Set(["ease", "linear", "initial", "inherit", "unset"]);
 
 /**
+ * Collapse a baked point-wise `linear()` easing to a single canonical token.
+ * Animation libraries that resolve springs/custom curves at runtime (Framer
+ * Motion, Motion One) serialize them as `linear(0, 0.0212, 0.0705, …)` with
+ * dozens of stops — every spring yields a different ~60-number string, so left
+ * verbatim they flood the easings list with unreadable, never-deduplicated
+ * noise. Normalizing to `"linear()"` keeps the design signal ("a baked easing
+ * curve is in use") without the point list. Other easings pass through verbatim.
+ */
+export function normalizeEasing(easing: string): string {
+  const t = easing.trim();
+  return /^linear\(/i.test(t) ? "linear()" : t;
+}
+
+/**
  * Parse one CSS time token to milliseconds. Accepts "0.3s", "300ms", "0s".
  * Returns null for values that are not a finite time (so callers can drop them).
  */
@@ -223,8 +237,8 @@ export function reduceAnimationTokens(raw: RawAnimations): AnimationTokens {
   const easings = new Set<string>();
   for (const entry of raw.easings) {
     for (const part of entry.split(/,(?![^()]*\))/)) {
-      // Split on commas, but not commas inside cubic-bezier()/steps() args.
-      const e = part.trim();
+      // Split on commas, but not commas inside cubic-bezier()/steps()/linear() args.
+      const e = normalizeEasing(part);
       if (e && !NOOP_EASINGS.has(e.toLowerCase())) easings.add(e);
     }
   }

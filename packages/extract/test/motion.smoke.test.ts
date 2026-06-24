@@ -38,6 +38,7 @@ test("captureMotion: records Element.animate calls into motion tokens", async ()
     const page = await browser.newPage();
     const timelines = await captureMotion(page, fixtureUrl("waapi.html"), {
       scroll: false,
+      interact: false,
       settleMs: 300,
     });
     assert.ok(timelines.count >= 2, "captured at least the two animate calls");
@@ -45,6 +46,45 @@ test("captureMotion: records Element.animate calls into motion tokens", async ()
     assert.ok(timelines.easings.includes("ease-out"));
     assert.ok(timelines.properties.includes("opacity"));
     assert.ok(timelines.properties.includes("transform"));
+  } finally {
+    await browser.close();
+  }
+});
+
+test("captureMotion: interact:false leaves hover-only motion untriggered", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    const timelines = await captureMotion(page, fixtureUrl("waapi.html"), {
+      scroll: false,
+      interact: false,
+      settleMs: 200,
+    });
+    // The 333ms hover animation only fires on pointerenter, which never happens.
+    assert.ok(!timelines.durations.includes(333), "hover motion not triggered");
+  } finally {
+    await browser.close();
+  }
+});
+
+test("captureMotion: interact:true hovers and captures gesture motion (linear() normalized)", async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    const timelines = await captureMotion(page, fixtureUrl("waapi.html"), {
+      scroll: false,
+      interact: true,
+      settleMs: 200,
+    });
+    // The hover-only .animate() now fires because the real pointer enters it.
+    assert.ok(
+      timelines.durations.includes(333),
+      "hover-only animation captured via interaction",
+    );
+    assert.ok(
+      timelines.easings.includes("linear()"),
+      "baked linear() spring normalized to a single token",
+    );
   } finally {
     await browser.close();
   }

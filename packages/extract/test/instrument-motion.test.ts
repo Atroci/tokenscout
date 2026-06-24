@@ -51,3 +51,13 @@ test("reduceWaapiTimelines: empty input is an empty, zero-count report", () => {
     properties: [],
   });
 });
+
+test("reduceWaapiTimelines: baked linear() springs collapse to one token", () => {
+  const r = reduceWaapiTimelines([
+    rec({ easing: "linear(0, 0.0212, 0.0705, 0.13, 1)" }),
+    rec({ easing: "linear(0, 0.5, 1)" }),
+    rec({ easing: "ease-out" }),
+  ]);
+  // Two different 60-stop springs would otherwise be two noisy distinct tokens.
+  assert.deepEqual(r.easings, ["ease-out", "linear()"]);
+});

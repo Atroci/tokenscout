@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `@tokenscout/extract` `captureMotion` now triggers **interaction-driven
+  motion**. After the load + auto-scroll passes it hovers a bounded sample of
+  interactive elements (`a`, `button`, `[role=button]`, `img`, Framer markers,
+  and anything with `cursor: pointer`) with the real Playwright pointer, so
+  gesture animations (`whileHover` and friends) fire and the WAAPI hook records
+  them. Load + scroll alone never fired these, so hover effects — e.g. a hero
+  image that scales/brightens on hover — were silently missed. New options:
+  `interact` (default `true`) and `maxInteractTargets` (default `24`). Synthetic
+  pointer events are deliberately not used: libraries such as Framer Motion gate
+  on `event.isTrusted`, so only a real pointer triggers them.
+
+### Changed
+
+- Baked point-wise `linear(…)` easings (Framer Motion / Motion One resolve
+  springs and custom curves into a ~60-stop `linear()` at runtime) now normalize
+  to a single `linear()` token in both the CSS and WAAPI reducers, instead of
+  flooding the easings list with unreadable, never-deduplicated point strings.
+
 ## [0.4.0] — 2026-06-13
 
 `tokenscout` (core) **0.4.0** · `@tokenscout/extract` **0.2.0**. Released on GitHub; npm publish pending account auth (registry still has `tokenscout@0.3.0`).
