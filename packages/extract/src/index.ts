@@ -288,3 +288,12 @@ export {
   type SvgIconManifest,
 } from "./harvest-icons.js";
 // --- end gap-E ---
+
+// --- gap-A: per-element CSS harvest (keystone) ---
+export {
+  harvestStyles,
+  type StyleNode,
+  type StyleProps,
+  type HarvestStylesOptions,
+} from "./harvest-styles.js";
+// --- end gap-A ---
