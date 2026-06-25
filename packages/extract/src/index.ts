@@ -266,3 +266,12 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-A: per-element CSS harvest (keystone) ---
+export {
+  harvestStyles,
+  type StyleNode,
+  type StyleProps,
+  type HarvestStylesOptions,
+} from "./harvest-styles.js";
+// --- end gap-A ---
