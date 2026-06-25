@@ -9,6 +9,8 @@ const empty = {
   lottieSources: [] as string[],
   aosEffects: [] as string[],
   domMarkers: [] as string[],
+  scrollLibraries: [] as string[],
+  hasScrollSnap: false,
 };
 
 test("detectMotion: a GSAP global is a high-confidence hit", () => {
@@ -69,4 +71,29 @@ test("detectMotion: an inert page yields no libraries", () => {
   assert.deepEqual(r.libraries, []);
   assert.equal(r.lottie.present, false);
   assert.equal(r.aos.count, 0);
+  assert.deepEqual(r.scrollLibraries, []);
+  assert.equal(r.hasScrollSnap, false);
+});
+
+// gap-F: scroll library detection tests
+test("detectMotion: lenis in globals is a high-confidence Lenis hit", () => {
+  const r = detectMotion({ ...empty, globals: ["lenis"] });
+  assert.deepEqual(r.scrollLibraries, [{ name: "Lenis", confidence: "high" }]);
+  assert.deepEqual(r.libraries, []);
+});
+
+test("detectMotion: data-locomotive-scroll DOM marker is medium-confidence Locomotive Scroll", () => {
+  const r = detectMotion({
+    ...empty,
+    domMarkers: ["data-locomotive-scroll"],
+  });
+  assert.deepEqual(r.scrollLibraries, [
+    { name: "Locomotive Scroll", confidence: "medium" },
+  ]);
+});
+
+test("detectMotion: hasScrollSnap is forwarded to the report", () => {
+  const r = detectMotion({ ...empty, hasScrollSnap: true });
+  assert.equal(r.hasScrollSnap, true);
+  assert.deepEqual(r.scrollLibraries, []);
 });
