@@ -266,3 +266,7 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-I: layered asset detection (additive AssetRef fields, no new exports) ---
+// AssetRef now includes position, zIndex, siblingImgCount, positionedAncestorSelector, isOverlay
+// --- end gap-I ---
