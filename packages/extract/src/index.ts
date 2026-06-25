@@ -331,3 +331,13 @@ export {
   type CaptureOptions,
 } from "./capture-states.js";
 // --- end gap-B ---
+
+// --- gap-C: interaction model detection ---
+export {
+  detectInteraction,
+  detectInteractionModel,
+  type RawInteractionSignals,
+  type InteractionType,
+  type InteractionModel,
+} from "./detect-interactions.js";
+// --- end gap-C ---
