@@ -266,3 +266,14 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-D: page topology mapping ---
+export {
+  mapPageTopology,
+  interpretTopology,
+  type RawTopologySignals,
+  type PageSection,
+  type PageTopology,
+  type PositionType,
+} from "./map-topology.js";
+// --- end gap-D ---
