@@ -317,3 +317,17 @@ export {
   type PositionType,
 } from "./map-topology.js";
 // --- end gap-D ---
+
+// --- gap-B: multi-state CSS diff ---
+export {
+  diffStates,
+  snapshotElementStyles,
+  captureScrollState,
+  captureClickState,
+  type ElementState,
+  type ElementStyles,
+  type CssDiff,
+  type StateDiff,
+  type CaptureOptions,
+} from "./capture-states.js";
+// --- end gap-B ---
