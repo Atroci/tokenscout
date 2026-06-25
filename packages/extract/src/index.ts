@@ -341,3 +341,15 @@ export {
   type InteractionModel,
 } from "./detect-interactions.js";
 // --- end gap-C ---
+
+// --- gap-H: responsive layout diff ---
+export {
+  diffBreakpoints,
+  diffLayoutSnapshots,
+  type LayoutSnapshot,
+  type LayoutChange,
+  type SelectorBreakpointDiff,
+  type LayoutPropName,
+  type DiffBreakpointsOptions,
+} from "./diff-breakpoints.js";
+// --- end gap-H ---
