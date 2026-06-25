@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-06-25
+
+`tokenscout` (core) **0.4.0** · `@tokenscout/extract` **0.3.0**. First npm publish of both packages (core was previously tagged but unpublished; extract is new).
+
 ### Added
 
 - `@tokenscout/extract` `captureMotion` now triggers **interaction-driven
@@ -19,6 +23,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `interact` (default `true`) and `maxInteractTargets` (default `24`). Synthetic
   pointer events are deliberately not used: libraries such as Framer Motion gate
   on `event.isTrusted`, so only a real pointer triggers them.
+- `harvestStyles(page, selector?, depth?)` — full `getComputedStyle()` DOM tree
+  walk (40 properties, depth-4 by default) that returns a `StyleNode` tree
+  mirroring the element hierarchy. The keystone for component-spec generation:
+  feeds exact computed values instead of aggregate token signals.
+- `extractSVGIcons(page)` — collects all inline `<svg>` elements, deduplicates
+  by content hash (djb2, 8-char base36), and returns a `SvgIconManifest`. Each
+  `SvgIcon` carries `viewBox`, dimensions, semantic label, interactivity flag,
+  and occurrence count.
+- `extractContent(page, opts?)` — verbatim text nodes, `alt` attributes,
+  `aria-label` values, and `placeholder` strings from a page or scoped section.
+- `mapPageTopology(page)` — section inventory of the page's top-level layout
+  children: tag, role, CSS position, z-index, sticky/fixed flags, height, and
+  whether the section is full-screen. Returns `PageTopology` including a
+  `hasScrollSnap` flag.
+- `captureScrollState` / `captureClickState` / `diffStates` — snapshot computed
+  styles on an element before and after a scroll or click trigger, then diff
+  them to a `StateDiff` array of `{ property, before, after }`. Fills the
+  interaction-state gap that static single-pass extraction misses.
+- `detectInteractionModel(page, selector)` — classifies a section or element as
+  `static`, `scroll-driven`, `click-driven`, `hover-driven`, or `time-driven`,
+  with confidence and mechanism evidence. Prevents the #1 cloner mistake:
+  building click-based UI when the original is scroll-driven.
+- `diffBreakpoints(page, url, selectors, opts?)` — for each selector, captures
+  layout-property snapshots at multiple viewport widths (default 1440/768/390)
+  and diffs them into `LayoutChange[]` entries: property, breakpoint where the
+  change first appears, before/after values.
+- `detect-motion`: `RawMotionSignals` and `MotionReport` now include
+  `scrollLibraries` (Lenis, Locomotive Scroll detected via window globals and
+  DOM class markers) and `hasScrollSnap` (from `scroll-snap-type` on `<html>`
+  or `<body>`).
+- `harvest-assets`: `AssetRef` now carries five optional layered-composition
+  fields for `image`-kind entries: `position`, `zIndex`, `siblingImgCount`,
+  `positionedAncestorSelector`, and `isOverlay`. Flags stacked images (a
+  background watermark + a foreground UI mockup in the same container) that
+  otherwise appear as a single asset.
+- `SiteReport` (from `inspectSite`) now includes `icons: SvgIconManifest` and
+  `topology: PageTopology | null`. Both are opt-out via `InspectOptions`.
 
 ### Changed
 
