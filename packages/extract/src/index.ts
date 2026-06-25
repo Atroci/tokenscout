@@ -266,3 +266,15 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-E: SVG icon extraction ---
+export {
+  extractSVGIcons,
+  buildIconManifest,
+  normaliseSvg,
+  hashSvg,
+  type RawSvgRef,
+  type SvgIcon,
+  type SvgIconManifest,
+} from "./harvest-icons.js";
+// --- end gap-E ---
