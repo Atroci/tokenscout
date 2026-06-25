@@ -276,3 +276,15 @@ export {
 // --- gap-I: layered asset detection (additive AssetRef fields, no new exports) ---
 // AssetRef now includes position, zIndex, siblingImgCount, positionedAncestorSelector, isOverlay
 // --- end gap-I ---
+
+// --- gap-E: SVG icon extraction ---
+export {
+  extractSVGIcons,
+  buildIconManifest,
+  normaliseSvg,
+  hashSvg,
+  type RawSvgRef,
+  type SvgIcon,
+  type SvgIconManifest,
+} from "./harvest-icons.js";
+// --- end gap-E ---
