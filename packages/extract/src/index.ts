@@ -266,3 +266,12 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-G: text content extraction ---
+export {
+  extractContent,
+  type TextNode,
+  type PageContent,
+  type ExtractContentOptions,
+} from "./extract-content.js";
+// --- end gap-G ---
