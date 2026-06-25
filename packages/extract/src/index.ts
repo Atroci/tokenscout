@@ -266,3 +266,13 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-C: interaction model detection ---
+export {
+  detectInteraction,
+  detectInteractionModel,
+  type RawInteractionSignals,
+  type InteractionType,
+  type InteractionModel,
+} from "./detect-interactions.js";
+// --- end gap-C ---
