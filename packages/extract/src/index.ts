@@ -297,3 +297,12 @@ export {
   type HarvestStylesOptions,
 } from "./harvest-styles.js";
 // --- end gap-A ---
+
+// --- gap-G: text content extraction ---
+export {
+  extractContent,
+  type TextNode,
+  type PageContent,
+  type ExtractContentOptions,
+} from "./extract-content.js";
+// --- end gap-G ---
