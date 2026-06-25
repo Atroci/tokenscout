@@ -266,3 +266,17 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-B: multi-state CSS diff ---
+export {
+  diffStates,
+  snapshotElementStyles,
+  captureScrollState,
+  captureClickState,
+  type ElementState,
+  type ElementStyles,
+  type CssDiff,
+  type StateDiff,
+  type CaptureOptions,
+} from "./capture-states.js";
+// --- end gap-B ---
