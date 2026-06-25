@@ -306,3 +306,14 @@ export {
   type ExtractContentOptions,
 } from "./extract-content.js";
 // --- end gap-G ---
+
+// --- gap-D: page topology mapping ---
+export {
+  mapPageTopology,
+  interpretTopology,
+  type RawTopologySignals,
+  type PageSection,
+  type PageTopology,
+  type PositionType,
+} from "./map-topology.js";
+// --- end gap-D ---
