@@ -18,6 +18,16 @@ export type AssetKind =
 export interface AssetRef {
   url: string;
   kind: AssetKind;
+  /** CSS position value of the img element or its nearest positioned ancestor ('static'|'absolute'|'fixed'|'relative'|'sticky'). */
+  position?: string;
+  /** Computed z-index string ('auto' or a number string). */
+  zIndex?: string;
+  /** Number of sibling <img> elements in the same parent container. */
+  siblingImgCount?: number;
+  /** CSS selector for the nearest ancestor with position !== 'static', if any. */
+  positionedAncestorSelector?: string;
+  /** True when position is 'absolute' or 'fixed' — flags likely overlay. */
+  isOverlay?: boolean;
 }
 
 /** The de-duplicated, sorted set of assets discovered on one page. */
@@ -30,6 +40,11 @@ interface RawAssetRef {
   /** Verbatim URL string (may be relative, protocol-relative, or a data: URI). */
   url: string;
   kind: string;
+  position?: string;
+  zIndex?: string;
+  siblingImgCount?: number;
+  positionedAncestorSelector?: string;
+  isOverlay?: boolean;
 }
 
 /**
@@ -61,11 +76,56 @@ function collectAssetRefs(): RawAssetRef[] {
   };
 
   for (const img of Array.from(document.querySelectorAll("img"))) {
+    // Collect composition-layering metadata for this img element.
+    const computed = getComputedStyle(img);
+    const position = computed.position;
+    const zIndex = computed.zIndex;
+    const siblingImgCount = img.parentElement
+      ? img.parentElement.querySelectorAll("img").length - 1
+      : 0;
+    const isOverlay = position === "absolute" || position === "fixed";
+
+    // Walk ancestors to find the nearest one with position !== 'static'.
+    let positionedAncestorSelector: string | undefined;
+    let ancestor = img.parentElement;
+    while (ancestor && ancestor !== document.body) {
+      if (getComputedStyle(ancestor).position !== "static") {
+        const id = ancestor.id;
+        const cls = ancestor.className;
+        const qualifier = id
+          ? "#" + id
+          : cls && typeof cls === "string" && cls.trim()
+            ? "." + cls.trim().split(/\s+/)[0]
+            : "";
+        positionedAncestorSelector = ancestor.tagName.toLowerCase() + qualifier;
+        break;
+      }
+      ancestor = ancestor.parentElement;
+    }
+
+    const layering: Pick<
+      RawAssetRef,
+      | "position"
+      | "zIndex"
+      | "siblingImgCount"
+      | "positionedAncestorSelector"
+      | "isOverlay"
+    > = {
+      position,
+      zIndex,
+      siblingImgCount,
+      isOverlay,
+      ...(positionedAncestorSelector !== undefined
+        ? { positionedAncestorSelector }
+        : {}),
+    };
+
     const src = img.getAttribute("src");
-    if (src) refs.push({ url: src, kind: "image" });
+    if (src) refs.push({ url: src, kind: "image", ...layering });
     const srcset = img.getAttribute("srcset");
     if (srcset)
-      for (const u of srcsetUrls(srcset)) refs.push({ url: u, kind: "image" });
+      for (const u of srcsetUrls(srcset))
+        refs.push({ url: u, kind: "image", ...layering });
   }
 
   for (const source of Array.from(document.querySelectorAll("source"))) {
@@ -126,9 +186,10 @@ export function buildAssetManifest(
   pageUrl: string,
   refs: RawAssetRef[],
 ): AssetManifest {
-  const byUrl = new Map<string, AssetKind>();
+  const byUrl = new Map<string, AssetRef>();
 
-  for (const { url, kind } of refs) {
+  for (const ref of refs) {
+    const { url, kind } = ref;
     if (!isAssetKind(kind)) continue;
 
     const raw = url.trim();
@@ -145,12 +206,25 @@ export function buildAssetManifest(
       continue;
 
     // First kind seen for a given resolved URL wins.
-    if (!byUrl.has(resolved.href)) byUrl.set(resolved.href, kind);
+    if (!byUrl.has(resolved.href)) {
+      const entry: AssetRef = { url: resolved.href, kind };
+      // Pass layering metadata through only for image refs.
+      if (kind === "image") {
+        if (ref.position !== undefined) entry.position = ref.position;
+        if (ref.zIndex !== undefined) entry.zIndex = ref.zIndex;
+        if (ref.siblingImgCount !== undefined)
+          entry.siblingImgCount = ref.siblingImgCount;
+        if (ref.positionedAncestorSelector !== undefined)
+          entry.positionedAncestorSelector = ref.positionedAncestorSelector;
+        if (ref.isOverlay !== undefined) entry.isOverlay = ref.isOverlay;
+      }
+      byUrl.set(resolved.href, entry);
+    }
   }
 
-  const assets = [...byUrl.entries()]
-    .map(([url, kind]) => ({ url, kind }))
-    .sort((a, b) => (a.url < b.url ? -1 : a.url > b.url ? 1 : 0));
+  const assets = [...byUrl.values()].sort((a, b) =>
+    a.url < b.url ? -1 : a.url > b.url ? 1 : 0,
+  );
 
   return { assets };
 }
