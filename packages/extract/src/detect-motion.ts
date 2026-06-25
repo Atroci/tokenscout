@@ -18,6 +18,10 @@ export interface RawMotionSignals {
   aosEffects: string[];
   /** DOM marker attributes/selectors that matched (e.g. "data-framer-name"). */
   domMarkers: string[];
+  /** Detected scroll library identifiers (e.g. "lenis", "locomotive-scroll"). */
+  scrollLibraries: string[];
+  /** True if scroll-snap-type is set on <html> or <body>. */
+  hasScrollSnap: boolean;
 }
 
 /** Confidence in a single library detection. "high" needs a definitive marker. */
@@ -50,6 +54,10 @@ export interface MotionReport {
   libraries: MotionLibrary[];
   lottie: LottieUsage;
   aos: AosUsage;
+  /** Detected scroll libraries, de-duplicated by name and sorted by name. */
+  scrollLibraries: MotionLibrary[];
+  /** True if scroll-snap-type is set on <html> or <body>. */
+  hasScrollSnap: boolean;
 }
 
 /**
@@ -70,8 +78,20 @@ const GLOBAL_LIBRARY: Record<string, MotionLibrary> = {
   Motion: { name: "Motion One", confidence: "high" },
 };
 
+/**
+ * Map a window global name to a known scroll library. A definitive global is
+ * high confidence.
+ */
+const SCROLL_GLOBAL_LIBRARY: Record<string, MotionLibrary> = {
+  lenis: { name: "Lenis", confidence: "high" },
+  LocomotiveScroll: { name: "Locomotive Scroll", confidence: "high" },
+};
+
 /** The window globals worth probing for. Passed to the browser collector. */
-export const MOTION_GLOBALS = Object.keys(GLOBAL_LIBRARY);
+export const MOTION_GLOBALS = [
+  ...Object.keys(GLOBAL_LIBRARY),
+  ...Object.keys(SCROLL_GLOBAL_LIBRARY),
+];
 
 /**
  * Interpret raw signals into a motion report. Pure and browser-free. Globals
@@ -104,6 +124,30 @@ export function detectMotion(signals: RawMotionSignals): MotionReport {
     .map(([name, confidence]) => ({ name, confidence }))
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
+  // Scroll library detection.
+  const scrollByName = new Map<string, Confidence>();
+  const noteScroll = (lib: MotionLibrary) => {
+    const prev = scrollByName.get(lib.name);
+    if (prev !== "high") scrollByName.set(lib.name, lib.confidence);
+  };
+
+  for (const g of signals.globals) {
+    const lib = SCROLL_GLOBAL_LIBRARY[g];
+    if (lib) noteScroll(lib);
+  }
+
+  // DOM markers for scroll libraries: medium confidence.
+  if (signals.scrollLibraries.includes("lenis"))
+    noteScroll({ name: "Lenis", confidence: "high" });
+  if (signals.scrollLibraries.includes("locomotive-scroll"))
+    noteScroll({ name: "Locomotive Scroll", confidence: "high" });
+  if (signals.domMarkers.some((m) => m === "data-locomotive-scroll"))
+    noteScroll({ name: "Locomotive Scroll", confidence: "medium" });
+
+  const scrollLibraries: MotionLibrary[] = [...scrollByName.entries()]
+    .map(([name, confidence]) => ({ name, confidence }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
   return {
     libraries,
     lottie: {
@@ -114,6 +158,8 @@ export function detectMotion(signals: RawMotionSignals): MotionReport {
       count: signals.aosEffects.length,
       effects: [...new Set(signals.aosEffects)].sort(),
     },
+    scrollLibraries,
+    hasScrollSnap: signals.hasScrollSnap,
   };
 }
 
@@ -146,6 +192,28 @@ function collectMotionSignals(probe: string[]): RawMotionSignals {
     document.querySelector("[data-framer-name], [data-framer-component-type]")
   )
     domMarkers.push("data-framer");
+  if (document.querySelector("[data-locomotive-scroll]"))
+    domMarkers.push("data-locomotive-scroll");
+
+  // Scroll library detection.
+  const scrollLibraries: string[] = [];
+  if (
+    w["lenis"] !== undefined ||
+    document.documentElement.classList.contains("lenis")
+  )
+    scrollLibraries.push("lenis");
+  if (
+    w["LocomotiveScroll"] !== undefined ||
+    document.querySelector("[data-locomotive-scroll]") !== null
+  )
+    scrollLibraries.push("locomotive-scroll");
+
+  // Scroll snap detection.
+  const htmlSnap = getComputedStyle(document.documentElement).scrollSnapType;
+  const bodySnap = getComputedStyle(document.body).scrollSnapType;
+  const hasScrollSnap =
+    (htmlSnap !== "" && htmlSnap !== "none") ||
+    (bodySnap !== "" && bodySnap !== "none");
 
   return {
     globals,
@@ -153,6 +221,8 @@ function collectMotionSignals(probe: string[]): RawMotionSignals {
     lottieSources,
     aosEffects,
     domMarkers,
+    scrollLibraries,
+    hasScrollSnap,
   };
 }
 

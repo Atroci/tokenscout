@@ -266,3 +266,9 @@ export {
   type MotionTimelines,
   type CaptureMotionOptions,
 } from "./instrument-motion.js";
+
+// --- gap-F: scroll library detection (extends detect-motion exports) ---
+// No new exports needed — MotionReport and detectPageMotion already exported
+// above, and MOTION_GLOBALS is re-exported with the detect-motion block.
+// scrollLibraries and hasScrollSnap fields are part of MotionReport.
+// --- end gap-F ---
