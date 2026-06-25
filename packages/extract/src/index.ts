@@ -11,6 +11,8 @@ import { discoverAssets, type AssetManifest } from "./harvest-assets.js";
 import { extractAnimations, type AnimationTokens } from "./animations.js";
 import { profilePage, type StackProfile } from "./profile-stack.js";
 import { discoverSitemapUrls } from "./sitemap.js";
+import { extractSVGIcons, type SvgIconManifest } from "./harvest-icons.js";
+import { mapPageTopology, type PageTopology } from "./map-topology.js";
 
 export interface ExtractOptions {
   /** Viewport widths to extract at. Defaults to [1280, 375]. */
@@ -68,6 +70,10 @@ export interface InspectOptions extends ExtractOptions {
   animations?: boolean;
   /** Fingerprint the tech stack from the entry page. Defaults to true. */
   stack?: boolean;
+  /** Collect SVG icon manifest from the entry page. Defaults to true. */
+  icons?: boolean;
+  /** Map the page section topology from the entry page. Defaults to true. */
+  topology?: boolean;
   /** ΔE76 clustering threshold passed to assembleTokens. */
   deltaE?: number;
   /** Root font-size in px for rem to px conversion. */
@@ -88,6 +94,10 @@ export interface SiteReport {
   animations: AnimationTokens;
   /** Tech-stack fingerprint of the entry page, or null when disabled. */
   stack: StackProfile | null;
+  /** SVG icon manifest from the entry page (empty when icons option is false). */
+  icons: SvgIconManifest;
+  /** Page section topology from the entry page (null when topology option is false). */
+  topology: PageTopology | null;
 }
 
 const EMPTY_ANIMATIONS: AnimationTokens = {
@@ -97,6 +107,8 @@ const EMPTY_ANIMATIONS: AnimationTokens = {
   properties: { composited: [], paint: [], layout: [] },
   reducedMotion: { declared: false, gap: false },
 };
+
+const EMPTY_ICON_MANIFEST: SvgIconManifest = { icons: [] };
 
 /**
  * Full single-pass inspection of a live URL: discover pages (link crawl or
@@ -115,6 +127,8 @@ export async function inspectSite(
     assets = true,
     animations = true,
     stack = true,
+    icons = true,
+    topology = true,
     deltaE,
     rootPx,
   } = options;
@@ -152,6 +166,8 @@ export async function inspectSite(
         ? await extractAnimations(page)
         : EMPTY_ANIMATIONS;
       const stackProfile = stack ? await profilePage(page) : null;
+      const iconManifest = icons !== false ? await extractSVGIcons(page) : EMPTY_ICON_MANIFEST;
+      const topologyResult = topology !== false ? await mapPageTopology(page) : null;
 
       const tokens = assembleTokens(pages, {
         deltaE,
@@ -166,6 +182,8 @@ export async function inspectSite(
         assets: assetManifest,
         animations: animationTokens,
         stack: stackProfile,
+        icons: iconManifest,
+        topology: topologyResult,
       };
     } finally {
       await page.close();
@@ -319,6 +337,9 @@ export {
 // --- end gap-D ---
 
 // --- gap-B: multi-state CSS diff ---
+// Note: CaptureOptions is intentionally omitted here — it conflicts with the
+// CaptureOptions already exported from capture.ts above. Consumers needing
+// capture-states CaptureOptions import directly from "./capture-states.js".
 export {
   diffStates,
   snapshotElementStyles,
@@ -328,7 +349,6 @@ export {
   type ElementStyles,
   type CssDiff,
   type StateDiff,
-  type CaptureOptions,
 } from "./capture-states.js";
 // --- end gap-B ---
 
