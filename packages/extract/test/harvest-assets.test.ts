@@ -67,3 +67,64 @@ test("buildAssetManifest: sorts by url and drops unknown kinds plus blanks", () 
 test("buildAssetManifest: empty input yields an empty manifest", () => {
   assert.deepEqual(buildAssetManifest(PAGE, []), { assets: [] });
 });
+
+// gap-I: layered asset composition metadata
+test("buildAssetManifest: image with position:absolute has isOverlay:true", () => {
+  const { assets } = buildAssetManifest(PAGE, [
+    {
+      url: "hero.png",
+      kind: "image",
+      position: "absolute",
+      zIndex: "10",
+      siblingImgCount: 0,
+      isOverlay: true,
+    },
+  ]);
+
+  assert.equal(assets.length, 1);
+  assert.equal(assets[0].position, "absolute");
+  assert.equal(assets[0].zIndex, "10");
+  assert.equal(assets[0].isOverlay, true);
+});
+
+test("buildAssetManifest: two images in the same parent each carry siblingImgCount:1", () => {
+  const { assets } = buildAssetManifest(PAGE, [
+    {
+      url: "a.png",
+      kind: "image",
+      position: "static",
+      zIndex: "auto",
+      siblingImgCount: 1,
+      isOverlay: false,
+    },
+    {
+      url: "b.png",
+      kind: "image",
+      position: "static",
+      zIndex: "auto",
+      siblingImgCount: 1,
+      isOverlay: false,
+    },
+  ]);
+
+  assert.equal(assets.length, 2);
+  assert.equal(assets[0].siblingImgCount, 1);
+  assert.equal(assets[1].siblingImgCount, 1);
+});
+
+test("buildAssetManifest: image with position:static has isOverlay:false", () => {
+  const { assets } = buildAssetManifest(PAGE, [
+    {
+      url: "logo.png",
+      kind: "image",
+      position: "static",
+      zIndex: "auto",
+      siblingImgCount: 0,
+      isOverlay: false,
+    },
+  ]);
+
+  assert.equal(assets.length, 1);
+  assert.equal(assets[0].position, "static");
+  assert.equal(assets[0].isOverlay, false);
+});

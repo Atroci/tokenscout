@@ -272,3 +272,7 @@ export {
 // above, and MOTION_GLOBALS is re-exported with the detect-motion block.
 // scrollLibraries and hasScrollSnap fields are part of MotionReport.
 // --- end gap-F ---
+
+// --- gap-I: layered asset detection (additive AssetRef fields, no new exports) ---
+// AssetRef now includes position, zIndex, siblingImgCount, positionedAncestorSelector, isOverlay
+// --- end gap-I ---
