@@ -1,0 +1,31 @@
+{
+  "name": "@tokenscout/transform",
+  "version": "0.1.0",
+  "description": "Transform W3C DTCG tokenscout output to CSS custom properties or Tailwind CSS config — zero new dependencies.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc -p tsconfig.typecheck.json",
+    "prepack": "npm run build",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "keywords": ["design-tokens", "tailwind", "css-variables", "tokenscout", "dtcg"],
+  "license": "MIT",
+  "author": "Hugo Carvalho (@Atroci)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atroci/tokenscout.git",
+    "directory": "packages/transform"
+  },
+  "dependencies": { "tokenscout": "^0.4.1" },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.16.0"
+  },
+  "engines": { "node": ">=20" }
+}

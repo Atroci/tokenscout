@@ -57,8 +57,140 @@ npm install @tokenscout/extract playwright
 npx playwright install chromium
 ```
 
+For format conversion (DTCG → CSS variables or Tailwind config):
+
+```bash
+npm install @tokenscout/transform
+```
+
 ESM, Node 20+. Playwright is a peer dependency of `@tokenscout/extract`, so the
 core stays dependency-free.
+
+## Claude Code skill
+
+The `/tokenscout` skill lets Claude Code extract tokens from any live URL in a
+single command, with no manual scripting.
+
+**Install once (project or global):**
+
+```bash
+npx skills add Atroci/tokenscout
+```
+
+**Invoke:**
+
+```
+/tokenscout https://example.com
+/tokenscout https://example.com --format css-vars
+/tokenscout https://example.com --format tailwind
+/tokenscout https://example.com --quick
+```
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `--format dtcg` | ✓ | W3C DTCG JSON summary |
+| `--format css-vars` | — | `:root { --color-... }` block |
+| `--format tailwind` | — | `theme.extend` object for `tailwind.config.js` |
+| `--quick` | — | Skip icons, topology, assets — tokens + stack only |
+
+Claude will present color swatches, type scale, spacing grid, animation model,
+and tech-stack profile, and optionally take a screenshot via
+[agent-browser](https://github.com/vercel-labs/agent-browser) if it is installed.
+
+## MCP server (`@tokenscout/mcp`)
+
+Wire `@tokenscout/mcp` as an MCP server to expose `inspect_site` and
+`extract_tokens` as native tools in Claude Code, Cursor, or Windsurf — no shell
+scripts required.
+
+**Install:**
+
+```bash
+npm install -g @tokenscout/mcp
+# or use npx (no install needed):
+```
+
+**Claude Code — `.claude/settings.json` or `~/.claude/settings.json`:**
+
+```json
+{
+  "mcpServers": {
+    "tokenscout": {
+      "command": "npx",
+      "args": ["@tokenscout/mcp"]
+    }
+  }
+}
+```
+
+**Cursor — `~/.cursor/mcp.json`:**
+
+```json
+{
+  "mcpServers": {
+    "tokenscout": {
+      "command": "npx",
+      "args": ["@tokenscout/mcp"]
+    }
+  }
+}
+```
+
+**Windsurf — `~/.codeium/windsurf/mcp_config.json`:**
+
+```json
+{
+  "mcpServers": {
+    "tokenscout": {
+      "command": "npx",
+      "args": ["@tokenscout/mcp"]
+    }
+  }
+}
+```
+
+Once wired, Claude can call the tools directly:
+
+```
+inspect_site(url, { breakpoints: [1440, 375], deltaE: 12 })
+extract_tokens(url)
+```
+
+`inspect_site` returns a full `SiteReport` (tokens + icons + topology + stack + assets).
+`extract_tokens` returns W3C DTCG tokens only (lighter, no Playwright screenshots).
+
+## Format converters (`@tokenscout/transform`)
+
+Convert tokenscout DTCG output to CSS custom properties or a Tailwind config:
+
+```ts
+import { transform } from "@tokenscout/transform";
+import { extractTokens } from "@tokenscout/extract";
+
+const tokens = await extractTokens("https://example.com");
+
+// CSS custom properties
+const css = transform(tokens, "css-vars");
+// :root {
+//   --color-cornflowerblue-17rhtps: rgb(58, 122, 213);
+//   --fontSize-font-size-1: 16px;
+//   --spacing-step-1: 8px;
+// }
+
+// Tailwind config (uses theme.extend — won't overwrite Tailwind defaults)
+const config = transform(tokens, "tailwind");
+// { theme: { extend: { colors: {...}, fontSize: {...}, spacing: {...} } } }
+
+// DTCG passthrough
+const dtcg = transform(tokens, "dtcg"); // JSON string
+```
+
+You can also call the converters directly:
+
+```ts
+import { toCssVars } from "@tokenscout/transform/css-vars";
+import { toTailwindConfig } from "@tokenscout/transform/tailwind";
+```
 
 ## Use
 

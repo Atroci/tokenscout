@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `@tokenscout/mcp` — stdio MCP server exposing `inspect_site` and `extract_tokens` as native tools for Claude Code, Cursor, and Windsurf. Auto-generates a full `SiteReport` (DTCG tokens, icons, topology, stack, assets) or lightweight DTCG-only output. Install via `npm i -D @tokenscout/mcp playwright`.
+- `@tokenscout/transform` — zero-dependency format converters: `toCssVars(tokens)` → `:root { --color-...: ... }`, `toTailwindConfig(tokens)` → `{ theme: { colors, fontSize, spacing, transitionDuration } }`, and a `transform(tokens, format)` convenience wrapper (`"css-vars" | "tailwind" | "dtcg"`).
+
 ## [0.3.0] — 2026-06-25
 
 `tokenscout` (core) **0.4.1** · `@tokenscout/extract` **0.3.0**. First npm publish of both packages (core was previously tagged but unpublished; extract is new).
