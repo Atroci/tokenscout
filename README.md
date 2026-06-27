@@ -89,9 +89,9 @@ npx skills add Atroci/tokenscout
 | Flag | Default | Effect |
 |------|---------|--------|
 | `--format dtcg` | ✓ | W3C DTCG JSON summary |
-| `--format css-vars` | — | `:root { --color-... }` block |
-| `--format tailwind` | — | `theme.extend` object for `tailwind.config.js` |
-| `--quick` | — | Skip icons, topology, assets — tokens + stack only |
+| `--format css-vars` |: | `:root { --color-... }` block |
+| `--format tailwind` |: | `theme.extend` object for `tailwind.config.js` |
+| `--quick` |: | Skip icons, topology, assets: tokens + stack only |
 
 Claude will present color swatches, type scale, spacing grid, animation model,
 and tech-stack profile, and optionally take a screenshot via
@@ -100,7 +100,7 @@ and tech-stack profile, and optionally take a screenshot via
 ## MCP server (`@tokenscout/mcp`)
 
 Wire `@tokenscout/mcp` as an MCP server to expose `inspect_site` and
-`extract_tokens` as native tools in Claude Code, Cursor, or Windsurf — no shell
+`extract_tokens` as native tools in Claude Code, Cursor, or Windsurf: no shell
 scripts required.
 
 **Install:**
@@ -110,7 +110,7 @@ npm install -g @tokenscout/mcp
 # or use npx (no install needed):
 ```
 
-**Claude Code — `.claude/settings.json` or `~/.claude/settings.json`:**
+**Claude Code: `.claude/settings.json` or `~/.claude/settings.json`:**
 
 ```json
 {
@@ -123,7 +123,7 @@ npm install -g @tokenscout/mcp
 }
 ```
 
-**Cursor — `~/.cursor/mcp.json`:**
+**Cursor: `~/.cursor/mcp.json`:**
 
 ```json
 {
@@ -136,7 +136,7 @@ npm install -g @tokenscout/mcp
 }
 ```
 
-**Windsurf — `~/.codeium/windsurf/mcp_config.json`:**
+**Windsurf: `~/.codeium/windsurf/mcp_config.json`:**
 
 ```json
 {
@@ -177,7 +177,7 @@ const css = transform(tokens, "css-vars");
 //   --spacing-step-1: 8px;
 // }
 
-// Tailwind config (uses theme.extend — won't overwrite Tailwind defaults)
+// Tailwind config (uses theme.extend: won't overwrite Tailwind defaults)
 const config = transform(tokens, "tailwind");
 // { theme: { extend: { colors: {...}, fontSize: {...}, spacing: {...} } } }
 
@@ -404,8 +404,8 @@ package that drives a headless browser. Full detail in
 - [ ] Responsive / multi-screen capture: configurable breakpoints, light/dark
       dual palette, and per-breakpoint token identity (currently flattened)
 
-Next focus is responsive multi-screen capture and refined motion capture —
-plan in [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-and-motion.md).
+Next focus is responsive multi-screen capture and refined motion capture.
+Full plan: [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-and-motion.md).
 
 **Release:**
 - [x] Publish core to npm (`0.1.x`), live: https://www.npmjs.com/package/tokenscout

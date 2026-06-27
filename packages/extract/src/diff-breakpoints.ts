@@ -99,7 +99,7 @@ function collectLayoutProps({
 export function diffLayoutSnapshots(snapshots: LayoutSnapshot[]): LayoutChange[] {
   if (snapshots.length < 2) return [];
 
-  // Map<property, LayoutChange> — last write wins (narrowest breakpoint).
+  // Map<property, LayoutChange>: last write wins (narrowest breakpoint).
   const seen = new Map<LayoutPropName, LayoutChange>();
 
   for (let i = 0; i < snapshots.length - 1; i++) {

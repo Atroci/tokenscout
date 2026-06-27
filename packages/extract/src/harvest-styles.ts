@@ -108,7 +108,7 @@ const NOISE = new Set([
 
 /**
  * Filter a raw computed-style map, dropping noise values.
- * Exported for unit testing — mirrors the logic baked into collectStyleTree.
+ * Exported for unit testing: mirrors the logic baked into collectStyleTree.
  */
 export function filterStyles(raw: Record<string, string>): StyleProps {
   const out: StyleProps = {};
@@ -134,8 +134,8 @@ export function extractText(
 }
 
 /**
- * Browser-side style-tree collector. Fully self-contained — no references to
- * outer module scope — because it runs inside page.evaluate().
+ * Browser-side style-tree collector. Fully self-contained: no references to
+ * outer module scope: because it runs inside page.evaluate().
  *
  * Accepts a single tuple arg [selector, depth, maxChildren] to match the
  * Playwright page.evaluate(fn, arg) overload.
@@ -147,7 +147,7 @@ function collectStyleTree([
   depth,
   maxChildren,
 ]: [string, number, number]): StyleNode | null {
-  // Noise values inlined — must stay identical to the outer NOISE constant.
+  // Noise values inlined: must stay identical to the outer NOISE constant.
   const NOISE_VALS = new Set([
     "none",
     "normal",
@@ -224,7 +224,7 @@ function collectStyleTree([
     // First 5 class names, space-joined.
     const classes = Array.from(el.classList).slice(0, 5).join(" ");
 
-    // Computed styles — drop noise values.
+    // Computed styles: drop noise values.
     const computed = getComputedStyle(el);
     const styles: Record<string, string> = {};
     for (const prop of PROPS) {

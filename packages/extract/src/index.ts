@@ -286,7 +286,7 @@ export {
 } from "./instrument-motion.js";
 
 // --- gap-F: scroll library detection (extends detect-motion exports) ---
-// No new exports needed — MotionReport and detectPageMotion already exported
+// No new exports needed: MotionReport and detectPageMotion already exported
 // above, and MOTION_GLOBALS is re-exported with the detect-motion block.
 // scrollLibraries and hasScrollSnap fields are part of MotionReport.
 // --- end gap-F ---
@@ -337,7 +337,7 @@ export {
 // --- end gap-D ---
 
 // --- gap-B: multi-state CSS diff ---
-// Note: CaptureOptions is intentionally omitted here — it conflicts with the
+// Note: CaptureOptions is intentionally omitted here: it conflicts with the
 // CaptureOptions already exported from capture.ts above. Consumers needing
 // capture-states CaptureOptions import directly from "./capture-states.js".
 export {

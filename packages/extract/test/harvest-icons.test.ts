@@ -57,7 +57,7 @@ test("hashSvg: produces an 8-character string", () => {
   assert.equal(h.length, 8, `expected 8 chars, got ${h.length}`);
 });
 
-test("hashSvg: is stable — same input always yields same output", () => {
+test("hashSvg: is stable: same input always yields same output", () => {
   const svg = "<svg><circle r='10'/></svg>";
   assert.equal(hashSvg(svg), hashSvg(svg));
 });
@@ -110,7 +110,7 @@ test("buildIconManifest: deduplicates identical SVGs and counts occurrences", ()
 });
 
 test("buildIconManifest: IDs and classes do not prevent deduplication", () => {
-  // Same shape, different id/class per instance — should still merge.
+  // Same shape, different id/class per instance: should still merge.
   const ref1 = makeRef('<svg id="icon-1" class="sm" viewBox="0 0 24 24"><path d="M0 0"/></svg>');
   const ref2 = makeRef('<svg id="icon-2" class="lg" viewBox="0 0 24 24"><path d="M0 0"/></svg>');
   const { icons } = buildIconManifest([ref1, ref2]);

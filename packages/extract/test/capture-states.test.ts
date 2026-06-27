@@ -72,7 +72,7 @@ test("diffStates: both-absent properties are not reported as changes", () => {
     selector: ".btn",
     styles: { color: "blue" },
   };
-  // opacity is not set in either — must not appear in diffs
+  // opacity is not set in either: must not appear in diffs
   const result = diffStates(before, after);
   const props = result.diffs.map((d) => d.property);
   assert.ok(!props.includes("opacity"));

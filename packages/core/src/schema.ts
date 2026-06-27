@@ -70,7 +70,7 @@ export interface AnimationInput {
 /** A DTCG group: leaf tokens or nested groups, plus optional group-level
  * `$extensions`. tokenscout emits color-sprawl audit metrics there (analyzable,
  * unanalyzable, distinct, sprawl-ratio). Per DTCG, `$`-prefixed members are
- * reserved metadata, not tokens — consumers counting tokens skip them. */
+ * reserved metadata, not tokens: consumers counting tokens skip them. */
 export interface TokenGroup {
   [key: string]: DesignToken | TokenGroup | Record<string, unknown> | undefined;
   $extensions?: Record<string, unknown>;

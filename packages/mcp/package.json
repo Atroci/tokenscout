@@ -1,7 +1,7 @@
 {
   "name": "@tokenscout/mcp",
   "version": "0.1.0",
-  "description": "MCP stdio server for tokenscout — expose design token extraction to Claude Code, Cursor, and Windsurf.",
+  "description": "MCP stdio server for tokenscout: expose design token extraction to Claude Code, Cursor, and Windsurf.",
   "type": "module",
   "bin": { "tokenscout-mcp": "./dist/index.js" },
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },

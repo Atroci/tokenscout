@@ -4,7 +4,7 @@
 // in-process, one browser context per (URL, theme), capture a full-page
 // screenshot + a Web Animations runtime-motion snapshot, and write everything to
 // a plain filesystem directory. Deliberately NO Browserless (SSPL/commercial),
-// NO object storage (MinIO is archived), NO queue — those are deferred behind
+// NO object storage (MinIO is archived), NO queue: those are deferred behind
 // concrete triggers (capture volume, multi-host, long-term retention).
 //
 // Usage (the in-process worker loop):
@@ -98,7 +98,7 @@ async function captureOne(
 
   const captures: ThemeCapture[] = [];
   for (const theme of themes) {
-    // One fresh context per capture, closed immediately after — bounds memory on
+    // One fresh context per capture, closed immediately after: bounds memory on
     // the shared, RAM-tight host instead of accumulating state in one context.
     const context = await browser.newContext({
       viewport: { width, height: 900 },
@@ -110,7 +110,7 @@ async function captureOne(
       // Snapshot motion while entrance animations are still running at load.
       const motion = await extractRuntimeMotion(page);
       // Reveal-on-scroll / lazy content stays opacity:0 until scrolled into view,
-      // so a naive full-page shot is blank — scroll through and settle first.
+      // so a naive full-page shot is blank: scroll through and settle first.
       if (scroll) await scrollAndSettle(page, settleMs);
       const screenshot = `${slug(url)}-${theme}.png`;
       await page.screenshot({
@@ -128,7 +128,7 @@ async function captureOne(
 /**
  * Capture one or more URLs to `outDir`: a full-page screenshot per theme state
  * plus a runtime-motion snapshot, with a `capture.json` manifest. Sequential
- * in-process loop (one browser per run, recycled context per capture) — the
+ * in-process loop (one browser per run, recycled context per capture): the
  * lane-minimal default; raise concurrency or add a queue only when volume needs
  * it. Captures are meant to be consumed by an analysis run and then discarded.
  */

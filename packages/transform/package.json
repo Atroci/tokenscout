@@ -1,7 +1,7 @@
 {
   "name": "@tokenscout/transform",
   "version": "0.1.0",
-  "description": "Transform W3C DTCG tokenscout output to CSS custom properties or Tailwind CSS config — zero new dependencies.",
+  "description": "Transform W3C DTCG tokenscout output to CSS custom properties or Tailwind CSS config: zero new dependencies.",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },

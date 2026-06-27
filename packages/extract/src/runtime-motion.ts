@@ -2,7 +2,7 @@
 //
 // This is the runtime counterpart to animations.ts. Where animations.ts reads
 // the STATIC computed transition/animation longhands + @keyframes, this reads
-// what is ACTUALLY animating at snapshot time — including JS-driven and WAAPI
+// what is ACTUALLY animating at snapshot time: including JS-driven and WAAPI
 // (element.animate()) motion that never appears as a CSS transition/animation
 // longhand. Animated property names are reused through classifyProperties() so
 // runtime motion gets the same compositor/paint/layout performance-smell scoring.

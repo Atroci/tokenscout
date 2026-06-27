@@ -15,9 +15,9 @@ export interface RawSvgRef {
   /** width/height as reported by getBoundingClientRect (may be 0 for hidden svgs). */
   width: number;
   height: number;
-  /** aria-label or title child text, if any — hints at a semantic name. */
+  /** aria-label or title child text, if any: hints at a semantic name. */
   label: string | null;
-  /** True when the svg is inside an <a> or <button> — likely an interactive icon. */
+  /** True when the svg is inside an <a> or <button>: likely an interactive icon. */
   isInteractive: boolean;
 }
 
@@ -46,7 +46,7 @@ export interface SvgIconManifest {
  * Runs in the browser. Walks the rendered DOM and gathers all inline <svg>
  * elements: outer HTML, viewBox, bounding rect, semantic label, and whether
  * the SVG is inside an interactive element.
- * Self-contained — references no outer module scope.
+ * Self-contained: references no outer module scope.
  */
 function collectSvgRefs(): RawSvgRef[] {
   const refs: RawSvgRef[] = [];
@@ -80,7 +80,7 @@ function collectSvgRefs(): RawSvgRef[] {
 
 /**
  * Normalise SVG markup so that per-instance variation (unique IDs, class names)
- * does not break deduplication. Pure — no browser dependency.
+ * does not break deduplication. Pure: no browser dependency.
  */
 export function normaliseSvg(html: string): string {
   return html
@@ -94,7 +94,7 @@ export function normaliseSvg(html: string): string {
 
 /**
  * djb2 hash of a string → unsigned 32-bit integer → base36 string, left-padded
- * to 8 characters. Pure — no crypto dependency.
+ * to 8 characters. Pure: no crypto dependency.
  */
 export function hashSvg(normalised: string): string {
   let hash = 5381;
@@ -109,7 +109,7 @@ export function hashSvg(normalised: string): string {
 
 /**
  * Deduplicate raw refs by normalised content hash, count occurrences, and sort
- * by count descending then hash ascending. Pure — testable without a browser.
+ * by count descending then hash ascending. Pure: testable without a browser.
  */
 export function buildIconManifest(refs: RawSvgRef[]): SvgIconManifest {
   interface Entry {

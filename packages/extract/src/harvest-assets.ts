@@ -26,7 +26,7 @@ export interface AssetRef {
   siblingImgCount?: number;
   /** CSS selector for the nearest ancestor with position !== 'static', if any. */
   positionedAncestorSelector?: string;
-  /** True when position is 'absolute' or 'fixed' — flags likely overlay. */
+  /** True when position is 'absolute' or 'fixed': flags likely overlay. */
   isOverlay?: boolean;
 }
 

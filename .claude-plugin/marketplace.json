@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.anthropic.com/claude-code/plugins/marketplace.schema.json",
   "name": "tokenscout",
-  "description": "Extract design tokens (colors, typography, spacing, animation, icons) from live websites as W3C DTCG JSON — zero-config, Playwright-backed.",
+  "description": "Extract design tokens (colors, typography, spacing, animation, icons) from live websites as W3C DTCG JSON: zero-config, Playwright-backed.",
   "owner": {
     "name": "Hugo Carvalho (Atroci)",
     "url": "https://github.com/Atroci"

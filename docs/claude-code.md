@@ -1,4 +1,4 @@
-# tokenscout — Claude Code integration
+# tokenscout: Claude Code integration
 
 Three ways to use tokenscout inside Claude Code, Cursor, or Windsurf:
 
@@ -12,7 +12,7 @@ Three ways to use tokenscout inside Claude Code, Cursor, or Windsurf:
 
 ## `/tokenscout` skill
 
-The skill drives the full extraction pipeline via shell scripts — no config file
+The skill drives the full extraction pipeline via shell scripts: no config file
 required. Good for ad-hoc extraction and one-shot redesign workflows.
 
 ### Install
@@ -44,14 +44,14 @@ npx skills add Atroci/tokenscout --global
 
 Claude will surface:
 
-- **Color palette** — perceptual clusters with hex, CSS property roles, and element counts
-- **Type scale** — sorted font sizes, detected modular ratio
-- **Spacing grid** — values + GCD base unit
-- **Animation model** — durations, easings, perf-smell flags, `prefers-reduced-motion` gap
-- **Tech stack** — detected framework with confidence
-- **Page topology** — section positions, sticky/fixed/full-screen flags *(skipped with `--quick`)*
-- **Icons** — unique SVG count + first 5 *(skipped with `--quick`)*
-- **Screenshot** — if [agent-browser](https://github.com/vercel-labs/agent-browser) is installed
+- **Color palette**: perceptual clusters with hex, CSS property roles, and element counts
+- **Type scale**: sorted font sizes, detected modular ratio
+- **Spacing grid**: values + GCD base unit
+- **Animation model**: durations, easings, perf-smell flags, `prefers-reduced-motion` gap
+- **Tech stack**: detected framework with confidence
+- **Page topology**: section positions, sticky/fixed/full-screen flags *(skipped with `--quick`)*
+- **Icons**: unique SVG count + first 5 *(skipped with `--quick`)*
+- **Screenshot**: if [agent-browser](https://github.com/vercel-labs/agent-browser) is installed
 
 ### Dependencies
 
@@ -82,12 +82,12 @@ inline without shell scripts.
 
 ```bash
 npm install -g @tokenscout/mcp
-# or use npx inline — no install needed
+# or use npx inline: no install needed
 ```
 
 ### Configure
 
-**Claude Code** — add to `.claude/settings.json` (project) or `~/.claude/settings.json` (global):
+**Claude Code**: add to `.claude/settings.json` (project) or `~/.claude/settings.json` (global):
 
 ```json
 {
@@ -100,7 +100,7 @@ npm install -g @tokenscout/mcp
 }
 ```
 
-**Cursor** — add to `~/.cursor/mcp.json`:
+**Cursor**: add to `~/.cursor/mcp.json`:
 
 ```json
 {
@@ -113,7 +113,7 @@ npm install -g @tokenscout/mcp
 }
 ```
 
-**Windsurf** — add to `~/.codeium/windsurf/mcp_config.json`:
+**Windsurf**: add to `~/.codeium/windsurf/mcp_config.json`:
 
 ```json
 {
@@ -150,7 +150,7 @@ Returns a `SiteReport` JSON object.
 
 #### `extract_tokens`
 
-DTCG tokens only — lighter than `inspect_site`.
+DTCG tokens only: lighter than `inspect_site`.
 
 ```
 extract_tokens(url, options?)

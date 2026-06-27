@@ -15,7 +15,7 @@ argument-hint: "<url> [--format css-vars|tailwind|dtcg] [--quick]"
 license: MIT
 ---
 
-# /tokenscout — Design Token Extraction
+# /tokenscout: Design Token Extraction
 
 Extract a live site's complete design token set: perceptual color clusters, type
 scale, spacing grid, animation tokens, SVG icons, and page topology. Outputs W3C
@@ -34,7 +34,7 @@ QUICK=$(echo "$ARGUMENTS" | grep -q -- '--quick' && echo 1 || echo 0)
 If `$URL` is empty or doesn't look like a URL, ask the user:
 > Which URL should I extract design tokens from?
 
-## Step 1 — Check installation
+## Step 1: Check installation
 
 ```bash
 node -e "require.resolve('@tokenscout/extract')" 2>/dev/null && echo OK || echo MISSING
@@ -56,7 +56,7 @@ If MISSING and FORMAT is not "dtcg":
 npm install --save-dev @tokenscout/transform
 ```
 
-## Step 2 — Run extraction
+## Step 2: Run extraction
 
 Create a session-unique working directory, then write and run the extraction script:
 
@@ -86,7 +86,7 @@ process.stdout.write(JSON.stringify(report, null, 2));
 TARGET_URL="$URL" QUICK="$QUICK" node "$TSDIR/run.mjs" > "$TSDIR/report.json"
 ```
 
-## Step 3 — Format conversion (if requested)
+## Step 3: Format conversion (if requested)
 
 If FORMAT is "css-vars" or "tailwind", convert via `@tokenscout/transform`:
 
@@ -104,15 +104,15 @@ process.stdout.write(typeof out === "string" ? out : JSON.stringify(out, null, 2
 TSDIR="$TSDIR" FORMAT="$FORMAT" node "$TSDIR/convert.mjs" > "$TSDIR/output.txt"
 ```
 
-## Step 4 — Present results
+## Step 4: Present results
 
-If FORMAT is "css-vars" or "tailwind", read `$TSDIR/output.txt` and present it first as a fenced code block — that is the primary output the user asked for.
+If FORMAT is "css-vars" or "tailwind", read `$TSDIR/output.txt` and present it first as a fenced code block: that is the primary output the user asked for.
 
 Read `$TSDIR/report.json` for the structured summary below:
 
 ### Color palette
 List the top clusters from `report.tokens.color`. For each:
-- Show the `$value` as a colour swatch approximation in text (e.g. `■ #3b82f6 — blue-500-ish · 14 elements · background-color, color`)
+- Show the `$value` as a colour swatch approximation in text (e.g. `■ #3b82f6: blue-500-ish · 14 elements · background-color, color`)
 - Note cluster size (`$extensions["com.tokenscout.member-count"]`) and usage roles (`$extensions["com.tokenscout.css-properties"]`)
 
 ### Type scale
@@ -136,7 +136,7 @@ From `report.topology.sections`: list section tags, positions, sticky/fixed/full
 ### Icons (skip if QUICK=1)
 From `report.icons.icons`: count of unique SVGs, list first 5 with viewBox + label.
 
-## Step 5 — Visual capture with agent-browser (optional)
+## Step 5: Visual capture with agent-browser (optional)
 
 If `agent-browser` is available in PATH:
 ```bash
@@ -151,17 +151,17 @@ agent-browser screenshot --full "$TSDIR/screenshot.png"
 agent-browser close
 ```
 
-Useful for cloning workflows — the screenshot is the visual ground truth, the tokens are the numerical spec.
+Useful for cloning workflows: the screenshot is the visual ground truth, the tokens are the numerical spec.
 
-## Step 6 — Suggest next steps
+## Step 6: Suggest next steps
 
 Based on what was extracted, suggest:
 
-1. **Start cloning** — "I have the full token set. Want me to scaffold a Next.js + Tailwind project using these tokens?"
-2. **Export to Tailwind** — "Run `/tokenscout $URL --format tailwind` to get a drop-in `tailwind.config.js`."
-3. **Export to CSS vars** — "Run `/tokenscout $URL --format css-vars` for a `:root { --color-... }` block."
-4. **Animation audit** — if `reducedMotion.gap` is true: "This site has animations but no `prefers-reduced-motion` guard — a WCAG 2.3.3 gap."
-5. **Interaction model** — if topology found scroll-driven sections: "The hero appears to be scroll-driven. Want me to run `detectInteractionModel` on specific sections?"
+1. **Start cloning**: "I have the full token set. Want me to scaffold a Next.js + Tailwind project using these tokens?"
+2. **Export to Tailwind**: "Run `/tokenscout $URL --format tailwind` to get a drop-in `tailwind.config.js`."
+3. **Export to CSS vars**: "Run `/tokenscout $URL --format css-vars` for a `:root { --color-... }` block."
+4. **Animation audit**: if `reducedMotion.gap` is true: "This site has animations but no `prefers-reduced-motion` guard: a WCAG 2.3.3 gap."
+5. **Interaction model**: if topology found scroll-driven sections: "The hero appears to be scroll-driven. Want me to run `detectInteractionModel` on specific sections?"
 
 ## MCP mode (Claude Code / Cursor / Windsurf)
 
@@ -185,6 +185,6 @@ This exposes `inspect_site` and `extract_tokens` as native tools, letting Claude
 ## Error handling
 
 - **Playwright install missing**: Run `npx playwright install chromium`
-- **Bot detection / 403**: Some sites block headless. Try `agent-browser open "$URL"` first — if it loads, run the extraction inside that session via `agent-browser eval`
+- **Bot detection / 403**: Some sites block headless. Try `agent-browser open "$URL"` first: if it loads, run the extraction inside that session via `agent-browser eval`
 - **Timeout**: Add `--timeout 60000` to the inspectSite options
 - **0 colors / empty tokens**: The site may use CSS custom properties not resolvable at paint time. Note this to the user and suggest inspecting `report.tokens.color.$extensions.unanalyzable`

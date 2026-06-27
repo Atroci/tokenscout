@@ -64,25 +64,25 @@ increasing ambition:
       only **durations** reach DTCG tokens; easings and `@keyframes` names are
       reported but not tokenized. Honest gaps to close:
   - [ ] `@keyframes` **bodies** (step offsets, animated properties, per-step
-        easings) — currently only the rule *name* is read, so the actual motion
+        easings): currently only the rule *name* is read, so the actual motion
         is unknown.
   - [ ] `transition-delay` / `animation-delay` longhands (never read today).
   - [ ] `transition: all` transitions (explicitly excluded today, yet extremely
-        common — e.g. `tailwindcss-animate`).
+        common: e.g. `tailwindcss-animate`).
   - [ ] Which property a transition animates (`transition-property` is used only
         as a gate, its value discarded).
   - [ ] Tokenize easings + keyframe names (reported but not emitted as tokens).
 - [x] **Library detection** (experimental): fingerprint GSAP / Framer Motion /
       AOS / anime.js / Velocity / ScrollMagic / Lottie / Motion One and scrape
       declarative `data-aos` configs via `detectPageMotion` / `detectMotion`.
-      Note: this is **dormant in the pipeline** — `inspectSite` does not yet call
+      Note: this is **dormant in the pipeline**: `inspectSite` does not yet call
       `detectPageMotion`. Wiring it in is the first Phase-4 step.
 - [~] **Lottie**: detection and source-URL collection ship with library
       detection; downloading **and parsing** the Lottie JSON (frame count,
       duration, fps, markers) is still pending (composes with `downloadAssets`).
 - [ ] **JS-driven (rAF) motion sampling**: the dominant real-world path (GSAP
       tweens, much of Framer Motion) mutates inline styles every frame via rAF
-      and bypasses WAAPI entirely — structurally invisible today. Needs a
+      and bypasses WAAPI entirely: structurally invisible today. Needs a
       rAF / `MutationObserver` style-sampling tier to recover durations, eases,
       and ScrollTrigger-style pins.
 - [ ] **Scroll-driven + View Transitions**: read CSS `animation-timeline:
@@ -97,7 +97,7 @@ increasing ambition:
 - [~] **Tier 3, runtime instrumentation (research):** `captureMotion` injects a
       pre-load hook that wraps `Element.animate` (Web Animations API) to record
       the effective animation timelines regardless of which library produced
-      them, reduced via `reduceWaapiTimelines`. Also **dormant** — exported but
+      them, reduced via `reduceWaapiTimelines`. Also **dormant**: exported but
       never invoked in the pipeline. Known limits when run: rAF motion is
       invisible (see above), spring/physics animations resolve with no numeric
       `duration` (recorded `null`, dropped), and only animated property *names*
@@ -106,7 +106,7 @@ increasing ambition:
 
 ### Phase 5: Responsive / multi-screen capture (`@tokenscout/extract`)
 Today extraction renders at two fixed CSS widths (`[1280, 375]`), a hard-coded
-900px height, DPR 1, and the default (light) media state — then **flattens every
+900px height, DPR 1, and the default (light) media state: then **flattens every
 breakpoint into one token set**. `PageExtract.breakpoint` is plumbed through the
 seam but discarded in `assembleTokens`, so mobile-vs-desktop deltas dissolve and
 dark-mode palettes are never even painted. None of this is done yet:
@@ -120,7 +120,7 @@ dark-mode palettes are never even painted. None of this is done yet:
 - [ ] **Per-breakpoint token identity**: stop unioning all `PageExtract`s in
       `assembleTokens`; group/reduce by `breakpoint` and record provenance
       (e.g. a `breakpoints: []` array in per-token `$extensions`). This is the
-      real structural work — the field is captured today and thrown away.
+      real structural work: the field is captured today and thrown away.
 - [ ] Full-height / lazy capture: scroll-and-settle to load IntersectionObserver
       and below-the-fold content (pattern exists in the experimental motion tier
       at `instrument-motion.ts`; not in the main extract path).

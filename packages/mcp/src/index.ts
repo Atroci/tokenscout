@@ -56,7 +56,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: "extract_tokens",
       description:
-        "Extract W3C DTCG design tokens only (colors, typography, spacing, animation durations) from a live URL. Lighter than inspect_site — no icons, topology, stack, or asset manifest.",
+        "Extract W3C DTCG design tokens only (colors, typography, spacing, animation durations) from a live URL. Lighter than inspect_site: no icons, topology, stack, or asset manifest.",
       inputSchema: {
         type: "object" as const,
         properties: {

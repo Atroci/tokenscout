@@ -1,6 +1,6 @@
 // Pure logic tests for the text-content extraction helpers. No browser needed.
 // We exercise the invariants that collectContent() enforces by simulating its
-// filtering rules on plain arrays — the same approach harvest-assets.test.ts uses
+// filtering rules on plain arrays: the same approach harvest-assets.test.ts uses
 // for buildAssetManifest().
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -96,7 +96,7 @@ test("filterTextNodes: skips element that has non-text children (mixed content)"
     className: "",
     childNodes: [
       { nodeType: 3, textContent: "text" },
-      { nodeType: 1, textContent: "<span>" }, // element child — should cause skip
+      { nodeType: 1, textContent: "<span>" }, // element child: should cause skip
     ],
     children: [],
     parentElement: null,
