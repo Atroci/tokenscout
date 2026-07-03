@@ -13,6 +13,7 @@ import { profilePage, type StackProfile } from "./profile-stack.js";
 import { discoverSitemapUrls } from "./sitemap.js";
 import { extractSVGIcons, type SvgIconManifest } from "./harvest-icons.js";
 import { mapPageTopology, type PageTopology } from "./map-topology.js";
+import { detectInteractionModel, type InteractionModel } from "./detect-interactions.js";
 
 export interface ExtractOptions {
   /** Viewport widths to extract at. Defaults to [1280, 375]. */
@@ -74,6 +75,8 @@ export interface InspectOptions extends ExtractOptions {
   icons?: boolean;
   /** Map the page section topology from the entry page. Defaults to true. */
   topology?: boolean;
+  /** Detect the page-level interaction driver (scroll/click/hover/time). Defaults to true. */
+  interaction?: boolean;
   /** ΔE76 clustering threshold passed to assembleTokens. */
   deltaE?: number;
   /** Root font-size in px for rem to px conversion. */
@@ -98,6 +101,8 @@ export interface SiteReport {
   icons: SvgIconManifest;
   /** Page section topology from the entry page (null when topology option is false). */
   topology: PageTopology | null;
+  /** Page-level interaction driver for the entry page (null when interaction option is false). */
+  interaction: InteractionModel | null;
 }
 
 const EMPTY_ANIMATIONS: AnimationTokens = {
@@ -129,6 +134,7 @@ export async function inspectSite(
     stack = true,
     icons = true,
     topology = true,
+    interaction = true,
     deltaE,
     rootPx,
   } = options;
@@ -168,6 +174,8 @@ export async function inspectSite(
       const stackProfile = stack ? await profilePage(page) : null;
       const iconManifest = icons !== false ? await extractSVGIcons(page) : EMPTY_ICON_MANIFEST;
       const topologyResult = topology !== false ? await mapPageTopology(page) : null;
+      const interactionResult =
+        interaction !== false ? await detectInteractionModel(page, "body") : null;
 
       const tokens = assembleTokens(pages, {
         deltaE,
@@ -184,6 +192,7 @@ export async function inspectSite(
         stack: stackProfile,
         icons: iconManifest,
         topology: topologyResult,
+        interaction: interactionResult,
       };
     } finally {
       await page.close();
@@ -286,7 +295,7 @@ export {
 } from "./instrument-motion.js";
 
 // --- gap-F: scroll library detection (extends detect-motion exports) ---
-// No new exports needed: MotionReport and detectPageMotion already exported
+// No new exports needed — MotionReport and detectPageMotion already exported
 // above, and MOTION_GLOBALS is re-exported with the detect-motion block.
 // scrollLibraries and hasScrollSnap fields are part of MotionReport.
 // --- end gap-F ---
@@ -337,7 +346,7 @@ export {
 // --- end gap-D ---
 
 // --- gap-B: multi-state CSS diff ---
-// Note: CaptureOptions is intentionally omitted here: it conflicts with the
+// Note: CaptureOptions is intentionally omitted here — it conflicts with the
 // CaptureOptions already exported from capture.ts above. Consumers needing
 // capture-states CaptureOptions import directly from "./capture-states.js".
 export {

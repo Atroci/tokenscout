@@ -312,6 +312,75 @@ test("assembleTokens: emits a sorted, deduped DTCG duration group from animation
   assert.equal(duration["duration-1"].$type, "duration");
 });
 
+test("assembleTokens: emits fontFamily, fontWeight, and lineHeight groups", () => {
+  const page: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [],
+      type: {
+        sizes: [],
+        families: ["Inter, sans-serif", "Georgia, serif"],
+        weights: ["700", "400"],
+        lineHeights: ["24px"],
+      },
+      spacing: { values: [] },
+    },
+  ];
+  const tokens = assembleTokens(page);
+  assert.deepEqual(Object.keys(tokens), [
+    "fontFamily",
+    "fontWeight",
+    "lineHeight",
+  ]);
+
+  const family = tokens.fontFamily as Record<
+    string,
+    { $value: string[]; $type: string }
+  >;
+  assert.deepEqual(family["font-family-1"].$value, ["Inter", "sans-serif"]);
+  assert.deepEqual(family["font-family-2"].$value, ["Georgia", "serif"]);
+  assert.equal(family["font-family-1"].$type, "fontFamily");
+
+  const weight = tokens.fontWeight as Record<
+    string,
+    { $value: number; $type: string }
+  >;
+  assert.deepEqual(Object.keys(weight), ["font-weight-1", "font-weight-2"]);
+  assert.equal(weight["font-weight-1"].$value, 400);
+  assert.equal(weight["font-weight-2"].$value, 700);
+  assert.equal(weight["font-weight-1"].$type, "fontWeight");
+
+  const lineHeight = tokens.lineHeight as Record<
+    string,
+    { $value: { value: number; unit: string }; $type: string }
+  >;
+  assert.deepEqual(lineHeight["line-height-1"].$value, {
+    value: 24,
+    unit: "px",
+  });
+  assert.equal(lineHeight["line-height-1"].$type, "dimension");
+});
+
+test("assembleTokens: strips quotes from a quoted font-family stack", () => {
+  const page: PageExtract[] = [
+    {
+      url: "https://example.com/",
+      breakpoint: 1280,
+      colors: [],
+      type: { sizes: [], families: ['"Franklin Gothic", Arial, sans-serif'] },
+      spacing: { values: [] },
+    },
+  ];
+  const tokens = assembleTokens(page);
+  const family = tokens.fontFamily as Record<string, { $value: string[] }>;
+  assert.deepEqual(family["font-family-1"].$value, [
+    "Franklin Gothic",
+    "Arial",
+    "sans-serif",
+  ]);
+});
+
 test("assembleTokens: omits the duration group when no motion is supplied", () => {
   const page: PageExtract[] = [
     {

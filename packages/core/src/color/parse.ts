@@ -1,7 +1,7 @@
 // Parse CSS color strings into normalized sRGB + alpha. Supported: hex, rgb(),
 // rgba(), hsl(), hsla(), named, and the CSS Color 4 function forms oklch(),
-// oklab(), lab(), lch(), and hwb() (converted to sRGB). color(): the
-// parameterized multi-colorspace form (display-p3, rec2020, xyz, ...): remains
+// oklab(), lab(), lch(), and hwb() (converted to sRGB). color() — the
+// parameterized multi-colorspace form (display-p3, rec2020, xyz, ...) — remains
 // unsupported and returns null (documented limitation; deferred until a real
 // site uses it).
 
@@ -83,7 +83,7 @@ function hslToRgb(hDeg: number, s: number, l: number): Rgb {
 
 // --- CSS Color 4 function forms: oklch/oklab/lab/lch/hwb -------------------
 // These are canonical CSS Color 4 (oklch is the Tailwind v4 default), not fringe
-// syntax: without them, colors authored in these spaces would silently drop.
+// syntax — without them, colors authored in these spaces would silently drop.
 // The math is inlined to keep the package dependency-free, mirroring lab.ts.
 
 const MODERN_RE = /^(oklch|oklab|lab|lch|hwb)\(\s*(.+?)\s*\)$/i;
@@ -91,7 +91,7 @@ const MODERN_RE = /^(oklch|oklab|lab|lch|hwb)\(\s*(.+?)\s*\)$/i;
 /**
  * Parse the CSS Color 4 function forms to sRGB. Space-separated components with
  * an optional `/ alpha`; `none` reads as 0; angles accept deg/grad/rad/turn
- * (bare = deg). Out-of-sRGB-gamut results are clamped per channel: full gamut
+ * (bare = deg). Out-of-sRGB-gamut results are clamped per channel — full gamut
  * mapping is out of scope. Returns null for anything else (including color()).
  */
 function parseModernColor(value: string): ParsedColor | null {

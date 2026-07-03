@@ -1,7 +1,7 @@
 // Stable, content-derived ids for color tokens. Pure TypeScript, zero dependencies.
 //
 // WHY: positional ids (color-1, color-2, ...) reshuffle whenever a color is
-// added, removed, or reordered upstream: which makes every run produce a noisy
+// added, removed, or reordered upstream — which makes every run produce a noisy
 // diff even when the palette barely changed. For design-system drift audits we
 // want ids that stay put: an id derived from the verbatim canonical CSS string
 // is stable across runs and across reordering, so a token diff reflects real

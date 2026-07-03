@@ -4,7 +4,7 @@
 // after the page settles we read the records and reduce them to motion tokens.
 //
 // Motion is fired three ways before we read the store: page load (entrance
-// animations), auto-scroll (reveal-on-scroll), and: crucially: INTERACTION.
+// animations), auto-scroll (reveal-on-scroll), and — crucially — INTERACTION.
 // Framer Motion `whileHover`/`whileTap` and similar gestures only issue their
 // `.animate()` calls when a real pointer enters the element, so a load+scroll
 // capture misses every hover effect (e.g. a hero image that brightens on hover).
@@ -52,7 +52,7 @@ export interface CaptureMotionOptions {
   scroll?: boolean;
   /**
    * Hover interactive elements with the real pointer to trigger gesture-driven
-   * motion (`whileHover` etc.). Defaults to true: this is what captures hover
+   * motion (`whileHover` etc.). Defaults to true — this is what captures hover
    * animations that load+scroll alone never fire.
    */
   interact?: boolean;
@@ -149,7 +149,7 @@ async function autoScroll(page: Page): Promise<void> {
  * gesture-driven motion (`whileHover` etc.) fires. Candidates are tagged in the
  * page (interactive tags + anything with `cursor: pointer`, the generic
  * "hoverable" signal), then each is scrolled into view and hovered via the real
- * mouse: synthetic pointer events are ignored by libraries that gate on
+ * mouse — synthetic pointer events are ignored by libraries that gate on
  * `event.isTrusted` (verified against Framer Motion). Returns how many elements
  * were actually hovered. The captured `.animate()` calls land in the WAAPI store.
  */

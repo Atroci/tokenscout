@@ -1,4 +1,4 @@
-# tokenscout: next steps: responsive / multi-screen capture & animation accuracy
+# tokenscout — next steps: responsive / multi-screen capture & animation accuracy
 
 Status: design doc / roadmap. Implementation-oriented, grounded in the current
 source. Cited line numbers are against `packages/extract/src/*` and
@@ -15,11 +15,12 @@ seam contract.
 
 ---
 
-# Part 1: Responsive / multi-screen capture
+# Part 1 — Responsive / multi-screen capture
 
 ## 1.1 Where we are
 
-- **Defaults: `breakpoints = [1280, 375]`, `top = 1`.** Two widths only (desktop + mobile). Defined in `extract/src/index.ts:31` (`extractSite`) and
+- **Defaults: `breakpoints = [1280, 375]`, `top = 1`.** Two widths only —
+  desktop + mobile. Defined in `extract/src/index.ts:31` (`extractSite`) and
   `extract/src/index.ts:110` (`inspectSite`), documented at `index.ts:16`.
 - **Height hard-coded to 900px, never varies.** `extract-page.ts:56`
   (`page.setViewportSize({ width: breakpoint, height: 900 })`); the extras pass
@@ -39,21 +40,21 @@ seam contract.
   The `(page × breakpoint)` loop at `index.ts:38-42` / `:133-137` produces N
   extracts; `assembleTokens` merges them with **no grouping by
   `page.breakpoint`**. Mobile-vs-desktop differences dissolve into one set.
-  `breakpoint` is dead metadata the moment it leaves the extractor: this is the
+  `breakpoint` is dead metadata the moment it leaves the extractor — this is the
   single biggest structural gap in Part 1.
 - **No media emulation.** Grep for `emulateMedia` / `colorScheme` / `prefers-`
-  is clean. Dark mode, reduced-motion, forced-colors, print: all uncaptured.
+  is clean. Dark mode, reduced-motion, forced-colors, print — all uncaptured.
   A site's entire dark palette is invisible to the pipeline.
 - **No scrolling in the token path.** `extract-page.ts:57-58` does
   `goto(url, { waitUntil: "load" })` then `evaluate(collectObservations)` at the
   fixed 900px-tall viewport. Lazy / IntersectionObserver content below 900px
   that hasn't loaded is missed. `waitUntil: "load"` (not `networkidle`) means
   late lazy assets may not even be in the DOM. The only scroll anywhere is
-  `instrument-motion.ts:116`, in the dormant WAAPI tier: not the token path.
+  `instrument-motion.ts:116`, in the dormant WAAPI tier — not the token path.
 
 ## 1.2 Proposals
 
-### (A) Configurable + richer breakpoint set: S
+### (A) Configurable + richer breakpoint set — S
 
 **Why 1280/375 alone is thin.** Two widths miss the tablet band (768–1024px)
 where most responsive grids reflow (2-col → 1-col), and miss large-desktop
@@ -69,30 +70,30 @@ scale that lives in between.
 **Caveat.** Height stays 900 (`extract-page.ts:56`) and DPR stays 1. True device
 emulation (tablet portrait, retina) needs a per-screen
 `browser.newContext({ viewport, deviceScaleFactor, isMobile, hasTouch })`
-instead of reusing one `newPage()`: that's proposal (E)/(F), not this one.
+instead of reusing one `newPage()` — that's proposal (E)/(F), not this one.
 Widths-only is a real, cheap improvement on its own.
 
-### (B) Capture `prefers-color-scheme` light AND dark → dual palette: M  ★ highest value
+### (B) Capture `prefers-color-scheme` light AND dark → dual palette — M  ★ highest value
 
 This is the single highest-value addition. Most modern sites ship a dark theme;
 today tokenscout renders only Chromium's default (light) state, so half the
 brand palette is silently absent.
 
 **How.** Playwright exposes `page.emulateMedia({ colorScheme: 'light' | 'dark' })`
-(supported values `light` / `dark`; `null` disables): confirmed against current
+(supported values `light` / `dark`; `null` disables) — confirmed against current
 Playwright docs. Per inspected URL, render twice: emulate `light`, collect; then
 emulate `dark`, collect.
 
 **Seam to touch.**
-1. `extract-page.ts:56-57`: call `page.emulateMedia({ colorScheme })` before
+1. `extract-page.ts:56-57` — call `page.emulateMedia({ colorScheme })` before
    `collectObservations`. Thread a `colorScheme` arg into `extractPage`.
-2. `schema.ts:28-35`: add a `colorScheme?: "light" | "dark"` field to
+2. `schema.ts:28-35` — add a `colorScheme?: "light" | "dark"` field to
    `PageExtract` alongside `breakpoint` (same plumbing pattern).
-3. `index.ts:38-42` / `:133-137`: extend the loop to
+3. `index.ts:38-42` / `:133-137` — extend the loop to
    `(page × breakpoint × scheme)`.
 
 **How it flows into a themed token set.** Don't merge the two schemes into one
-flat palette: that re-creates the breakpoint-flattening bug for color. Two
+flat palette — that re-creates the breakpoint-flattening bug for color. Two
 viable shapes, in order of preference:
 
 - **Themed sub-documents (preferred):** emit `color.light.*` and `color.dark.*`
@@ -105,13 +106,13 @@ viable shapes, in order of preference:
   contract must be preserved.
 
 This requires `buildColorGroup` to accept a pre-filtered `pages` slice (filter by
-`page.colorScheme`): small refactor, same function.
+`page.colorScheme`) — small refactor, same function.
 
-### (C) `prefers-reduced-motion` capture: S (after motion tier is wired)
+### (C) `prefers-reduced-motion` capture — S (after motion tier is wired)
 
 `page.emulateMedia({ reducedMotion: 'reduce' | 'no-preference' })` exists in
 Playwright (confirmed). Capturing the reduced-motion variant tells you which
-animations a site actually suppresses for accessibility: a real signal for a
+animations a site actually suppresses for accessibility — a real signal for a
 motion brief.
 
 **Seam.** Same `emulateMedia` call site as (B) at `extract-page.ts:56` /
@@ -119,7 +120,7 @@ motion brief.
 (`index.ts:144-152`) once the motion functions are wired (Part 2 §0). Low value
 until motion capture itself is live, so sequence it after Part 2.
 
-### (D) Preserve per-breakpoint identity: L  ★ the real structural work
+### (D) Preserve per-breakpoint identity — L  ★ the real structural work
 
 The seam is **already there and thrown away**: `PageExtract.breakpoint`
 (`schema.ts:31`) is populated and discarded at `tokens/index.ts:89` / the type
@@ -139,7 +140,7 @@ The seam is **already there and thrown away**: `PageExtract.breakpoint`
      Heavier; only if consumers need fully separate sets.
 3. **Decide semantics explicitly.** Today it's a silent union with no
    provenance. State the choice: union (current) vs. intersection (only tokens
-   present at every width: the "stable core") vs. per-breakpoint sets. The
+   present at every width — the "stable core") vs. per-breakpoint sets. The
    recommendation: keep the union but attach a `breakpoints` provenance array so
    nothing is lost and intersection can be derived later.
 
@@ -160,10 +161,10 @@ Example token shape with provenance (extends the existing color token at
 ```
 
 This is the highest-leverage change in Part 1 because the data is *already
-captured and silently dropped*: it's a reducer change, not a new collection
+captured and silently dropped* — it's a reducer change, not a new collection
 path.
 
-### (E) Full-height / scroll-to-load for lazy content: M
+### (E) Full-height / scroll-to-load for lazy content — M
 
 Below-900px lazy content is invisible (§1.1). Add a scroll-and-settle step
 before `collectObservations`:
@@ -181,7 +182,7 @@ before `collectObservations`:
 truncation, not full coverage. Honest framing: this recovers static
 below-the-fold sections, not endless feeds.
 
-### (F) DPR for retina assets: S–M
+### (F) DPR for retina assets — S–M
 
 Asset harvesting (`harvest-assets.ts`) records source URLs but renders at DPR 1,
 so it can't distinguish a 1x asset from the 2x a retina viewport would request.
@@ -191,24 +192,24 @@ it with (A)'s move to per-screen contexts.
 
 ## 1.3 Recommended sequencing (Part 1)
 
-1. **(A) richer breakpoints**: S, zero contract change, immediate sampling win.
-2. **(B) light+dark dual palette**: M, highest value; ship as themed
+1. **(A) richer breakpoints** — S, zero contract change, immediate sampling win.
+2. **(B) light+dark dual palette** — M, highest value; ship as themed
    sub-documents. Lands the biggest missing chunk of the brand palette.
-3. **(D) per-breakpoint provenance**: L, the structural fix; do it via the
+3. **(D) per-breakpoint provenance** — L, the structural fix; do it via the
    `$extensions` provenance array (cheapest path that loses nothing). (B) and
    (D) share the same "thread an axis through the seam, stop flattening in
-   `buildColorGroup`" refactor: do (B) first, generalize for (D).
-4. **(E) scroll-to-load**: M, recovers below-fold tokens.
-5. **(C) reduced-motion** + **(F) DPR**: S, opportunistic, after the motion
+   `buildColorGroup`" refactor — do (B) first, generalize for (D).
+4. **(E) scroll-to-load** — M, recovers below-fold tokens.
+5. **(C) reduced-motion** + **(F) DPR** — S, opportunistic, after the motion
    tier (Part 2) and the per-screen `newContext` refactor exist.
 
 ---
 
-# Part 2: Animation capture accuracy
+# Part 2 — Animation capture accuracy
 
 ## §0 What runs today vs. what merely exists
 
-- **`inspectSite` only calls `extractAnimations` (CSS)**: `index.ts:149-151`.
+- **`inspectSite` only calls `extractAnimations` (CSS)** — `index.ts:149-151`.
   `detectPageMotion` and `captureMotion` are **exported but never invoked**
   (`index.ts:226-244` are re-exports only). In any real run, only CSS-animation
   tokens are produced; library detection and WAAPI capture are dormant functions
@@ -216,7 +217,7 @@ it with (A)'s move to per-screen contexts.
 - **Only ms durations reach DTCG.** `inspectSite` passes
   `{ durations: animationTokens.durations }` to `assembleTokens`
   (`index.ts:155-158`). Easings and `@keyframes` names are returned on
-  `SiteReport.animations` (`index.ts:88`) **as a report only**: never tokenized.
+  `SiteReport.animations` (`index.ts:88`) **as a report only** — never tokenized.
   The `duration` group (`tokens/index.ts:60-77`) is the sole motion DTCG output.
 - **Extras collected once, widest breakpoint only** (`index.ts:139-144`). No
   per-breakpoint motion identity; mobile-specific transitions are invisible.
@@ -228,15 +229,15 @@ writing them.
 
 | Source | What drives it | Capturable today | Ceiling | Gap |
 |---|---|---|---|---|
-| **CSS: Tailwind / `tailwindcss-animate`** | Pure CSS transitions/animations + `@keyframes` | Durations (ms) → tokens; easings + keyframe **names** → report only | **Fully capturable**: it's all in computed style + the CSSOM | `transition: all` is excluded (`animations.ts:108`); `transition-delay`/`animation-delay` never read; keyframe **bodies** dropped (`animations.ts:135-137`); `ease`/`linear` dropped as no-op |
-| **WAAPI: Motion (`motion.dev`) / Framer Motion** | Hybrid engine: WAAPI for hardware-accelerated transform/opacity, rAF for everything else | Only via dormant `instrument-motion.ts` wrap of `Element.animate` | **Partial**: only the WAAPI half is reachable | Motion's **springs** resolve with no numeric `duration` → recorded `null` (`:62`) then dropped; Framer's layout/drag/spring run on **rAF**, invisible; detection flags Framer only via `data-framer-*` attrs, no values |
-| **rAF: GSAP** | rAF + per-frame inline-style mutation; **zero WAAPI calls** | Global detection only (dormant) | **Best-effort via sampling** (§2.2): never exact | `instrument-motion.ts:6-8` admits rAF is out of scope. You learn "GSAP present" and nothing about durations, eases, ScrollTrigger pins, or timelines |
-| **Scroll-driven CSS: `animation-timeline: scroll()/view()`** | CSS; progress bound to scroll, not time | Keyframe **name** may be picked up incidentally | **Detectable + classifiable** (it's CSS longhands) | `animation-timeline` / `scroll-timeline` / `view-timeline` longhands are never read; no notion that an animation is scroll-linked vs time-based |
-| **View Transitions API** | `document.startViewTransition` + `::view-transition-*` pseudos | Nothing | **Detectable** (probe the API + `view-transition-name`) | Completely unhandled: no probe, no global, no DOM marker |
+| **CSS — Tailwind / `tailwindcss-animate`** | Pure CSS transitions/animations + `@keyframes` | Durations (ms) → tokens; easings + keyframe **names** → report only | **Fully capturable** — it's all in computed style + the CSSOM | `transition: all` is excluded (`animations.ts:108`); `transition-delay`/`animation-delay` never read; keyframe **bodies** dropped (`animations.ts:135-137`); `ease`/`linear` dropped as no-op |
+| **WAAPI — Motion (`motion.dev`) / Framer Motion** | Hybrid engine: WAAPI for hardware-accelerated transform/opacity, rAF for everything else | Only via dormant `instrument-motion.ts` wrap of `Element.animate` | **Partial** — only the WAAPI half is reachable | Motion's **springs** resolve with no numeric `duration` → recorded `null` (`:62`) then dropped; Framer's layout/drag/spring run on **rAF**, invisible; detection flags Framer only via `data-framer-*` attrs, no values |
+| **rAF — GSAP** | rAF + per-frame inline-style mutation; **zero WAAPI calls** | Global detection only (dormant) | **Best-effort via sampling** (§2.2) — never exact | `instrument-motion.ts:6-8` admits rAF is out of scope. You learn "GSAP present" and nothing about durations, eases, ScrollTrigger pins, or timelines |
+| **Scroll-driven CSS — `animation-timeline: scroll()/view()`** | CSS; progress bound to scroll, not time | Keyframe **name** may be picked up incidentally | **Detectable + classifiable** (it's CSS longhands) | `animation-timeline` / `scroll-timeline` / `view-timeline` longhands are never read; no notion that an animation is scroll-linked vs time-based |
+| **View Transitions API** | `document.startViewTransition` + `::view-transition-*` pseudos | Nothing | **Detectable** (probe the API + `view-transition-name`) | Completely unhandled — no probe, no global, no DOM marker |
 | **Lottie** | JSON/dotLottie played by lottie-web/bodymovin | Detected; source URLs listed (dormant) | **Fully parseable** if the `.json` is fetched | Never downloads/parses the JSON (`detect-motion.ts:109-112`); no frame count, duration, fps, markers |
 
 **Library-engine facts (sourced, current):** Motion is the only library with a
-**hybrid engine**: it runs animations via *either* WAAPI (its `NativeAnimation`
+**hybrid engine** — it runs animations via *either* WAAPI (its `NativeAnimation`
 class, hardware-accelerated, compositor thread) *or* `requestAnimationFrame` (its
 `JSAnimation` class, main thread), selecting automatically; springs and
 anything WAAPI can't express fall to rAF. **GSAP** is rAF-only: it mutates inline
@@ -245,7 +246,7 @@ wrapping `Element.animate` (`instrument-motion.ts`) catches part of Motion and
 none of GSAP. (Sources at end.)
 
 **Standards-status facts (sourced):** CSS scroll-driven animations are **not
-Baseline**: Chromium 115+, Safari 18+, Firefox behind a flag (~85% caniuse).
+Baseline** — Chromium 115+, Safari 18+, Firefox behind a flag (~85% caniuse).
 View Transitions: **same-document is Baseline** (Chrome 111+, Safari 18+, Firefox
 144+); cross-document is Chromium 126+ / Safari 18.2+, Firefox flagged. Treat
 both as progressive enhancements: tokenscout's capture for them is **detection +
@@ -253,7 +254,7 @@ classification**, not full reproduction.
 
 ## §2 Concrete accuracy upgrades
 
-### (1) Capture `@keyframes` BODIES, not just names: M
+### (1) Capture `@keyframes` BODIES, not just names — M
 
 Today `collectAnimations` records only `CSSKeyframesRule.name` (rule type 7,
 `animations.ts:124-140`). The 0%/50%/100% step rules, the transformed
@@ -262,15 +263,15 @@ properties, and per-keyframe easings are discarded (`:135-137`).
 **Approach.** A `CSSKeyframesRule` exposes `.cssRules`, each a `CSSKeyframeRule`
 with `.keyText` (the offset, e.g. `"50%"`) and `.style` (a `CSSStyleDeclaration`).
 Iterate them, emit `{ name, steps: [{ offset, declarations: {prop: value} }] }`.
-Keep the existing per-sheet cross-origin try/catch guard (`animations.ts:124-140`):
-same-origin sheets only; cross-origin keyframes stay name-only (honest limit).
+Keep the existing per-sheet cross-origin try/catch guard (`animations.ts:124-140`)
+— same-origin sheets only; cross-origin keyframes stay name-only (honest limit).
 
-**Where it lands.** This is structured motion data, not a scalar: DTCG has no
+**Where it lands.** This is structured motion data, not a scalar — DTCG has no
 keyframe type. Put it under group `$extensions`, e.g.
 `com.tokenscout.keyframes: { fade-in: { steps: [...] } }`, mirroring the
 color-sprawl extensions pattern (`tokens/index.ts:136-140`).
 
-### (2) rAF / MutationObserver sampling to recover JS-driven motion (the GSAP gap): L
+### (2) rAF / MutationObserver sampling to recover JS-driven motion (the GSAP gap) — L
 
 GSAP and Framer's rAF path bypass WAAPI entirely, so wrapping `Element.animate`
 can't see them. The only way to observe them programmatically is to **sample the
@@ -289,7 +290,7 @@ rendered result over time**.
    elements to trigger hover-driven tweens.
 4. Reduce the per-element time-series to a *signature*: detected duration (first
    change → settle), peak/Δ transform, easing **shape** (approximate by fitting
-   sampled progress to a cubic-bezier family: best-effort, label it as
+   sampled progress to a cubic-bezier family — best-effort, label it as
    inferred).
 
 **Limits (state them plainly):**
@@ -297,20 +298,20 @@ rendered result over time**.
   element translated 40px over ~600ms with ease-out-ish progress," never
   "`gsap.to(x, {duration:0.6, ease:'power2.out'})`."
 - Sampling resolution is capped by frame rate (~16ms) and by what you scroll/
-  hover into view: interaction-gated and scroll-gated animations off the driven
+  hover into view — interaction-gated and scroll-gated animations off the driven
   path are missed.
 - Easing fit is approximate; spring physics (stiffness/damping) can't be
-  recovered from a sampled curve with confidence: mark as `inferred`, never
+  recovered from a sampled curve with confidence — mark as `inferred`, never
   emit as a precise token.
 - Heavier and slower than CSS capture; gate behind an opt-in flag, not the
   default `inspectSite` path.
 
-### (3) Scroll-driven animation + View Transitions capture: S (detection) / M (classification)
+### (3) Scroll-driven animation + View Transitions capture — S (detection) / M (classification)
 
 **Scroll-driven CSS.** Extend `collectAnimations` (`animations.ts:98-143`) to
 read `animation-timeline`, `scroll-timeline`, `view-timeline` from computed
 style. When `animation-timeline` is `scroll(...)` / `view(...)`, classify that
-animation's `trigger` as `scroll` instead of `time`. Cheap: it's just more
+animation's `trigger` as `scroll` instead of `time`. Cheap — it's just more
 longhands at the existing collection site. Don't try to *reproduce* the scroll
 binding (not Baseline); just record that it exists and which keyframes it drives.
 
@@ -318,37 +319,37 @@ binding (not Baseline); just record that it exists and which keyframes it drives
 `typeof document.startViewTransition === "function"` (capability) and
 `document.querySelectorAll('[style*="view-transition-name"], [class]')` plus a
 CSSOM scan for `::view-transition` pseudos / `view-transition-name` declarations
-(usage). Emit a presence + named-region report. Detection only: same-document
+(usage). Emit a presence + named-region report. Detection only — same-document
 VT is Baseline but reproduction is out of scope. New tiny collector alongside
 `detect-motion.ts`.
 
-### (4) Motion-reference video via Playwright screencast: M
+### (4) Motion-reference video via Playwright screencast — M
 
 When programmatic capture is partial (rAF, springs, scroll-driven), a recorded
 video is the ground-truth fallback a human (or the brief's reviewer) can eyeball.
 
 **Approach.** Use Playwright's video recording
 (`browser.newContext({ recordVideo: { dir } })`) for a dedicated motion pass:
-load the page, run a deterministic driver: autoscroll top→bottom at a fixed rate
+load the page, run a deterministic driver — autoscroll top→bottom at a fixed rate
 (reuse `instrument-motion.ts:116`), pause on sections, hover the candidate
-elements from §2.2: then save the `.webm`. Store it next to the run's JSON as a
+elements from §2.2 — then save the `.webm`. Store it next to the run's JSON as a
 non-tokenized artifact referenced from `SiteReport`.
 
-**Framing.** This is a *reference*, not a token source: it doesn't feed
+**Framing.** This is a *reference*, not a token source — it doesn't feed
 `assembleTokens`. It's the honest answer to "we can't programmatically capture
 GSAP timelines": ship the video so the value isn't lost. Opt-in; it costs
 wall-clock and disk.
 
-### (5) Normalized motion-token taxonomy → DTCG mapping: M
+### (5) Normalized motion-token taxonomy → DTCG mapping — M
 
 Define one normalized shape so every source (CSS, WAAPI, sampled, scroll) reduces
 to the same vocabulary:
 
 ```
 MotionToken = {
-  duration: number,            // ms     : already a DTCG `duration` token
+  duration: number,            // ms      — already a DTCG `duration` token
   easing:   string,            // cubic-bezier()/steps()/inferred-bezier
-  delay:    number,            // ms     : NOT captured today (gap)
+  delay:    number,            // ms      — NOT captured today (gap)
   property: string,            // transform | opacity | <named> | "unknown"
   trigger:  "time" | "scroll" | "hover" | "view-transition" | "load",
   source:   "css" | "waapi" | "sampled-raf" | "scroll-timeline" | "lottie",
@@ -365,21 +366,21 @@ MotionToken = {
   product's "don't invent token-spec compliance" rule). Put them under group
   and/or token `$extensions`, mirroring the color-sprawl pattern
   (`tokens/index.ts:136-140`):
-  - `com.tokenscout.easings: [...]` (group-level, de-duped: the data already on
+  - `com.tokenscout.easings: [...]` (group-level, de-duped — the data already on
     `SiteReport.animations.easings`, just promoted into the token doc).
   - `com.tokenscout.motion: [ MotionToken, ... ]` for the full normalized list,
     with `confidence` distinguishing exact (CSS/WAAPI) from inferred (sampled).
 - **Capture the two missing scalars first:** `transition-delay` /
-  `animation-delay` are never read today: add them to `collectAnimations`
+  `animation-delay` are never read today — add them to `collectAnimations`
   (`animations.ts:107-119`) since they're free (already in computed style) and
   feed `delay` directly.
 
-## §3 Accuracy ceiling: honest statement
+## §3 Accuracy ceiling — honest statement
 
 Programmatic JS-motion capture is **best-effort and has a hard ceiling.** The
 dominant real-world motion path is rAF inline-style mutation (all of GSAP, much
 of Framer/Motion's non-WAAPI work), and it is structurally invisible to any
-API-wrapping approach: you cannot recover the authored `gsap.to(...)` call,
+API-wrapping approach — you cannot recover the authored `gsap.to(...)` call,
 only sample its rendered result. Springs resolve to no fixed duration and can't
 be expressed as a duration+easing token at all.
 
@@ -435,7 +436,7 @@ Ordered; each shippable independently.
    `instrument-motion.ts:116` pattern) to recover below-the-fold lazy tokens.
 
 The rAF/MutationObserver sampler (Part 2 §2.2) and motion-reference video
-(§2.4) are deliberately *not* in the first five: they're the L-effort,
+(§2.4) are deliberately *not* in the first five — they're the L-effort,
 opt-in, best-effort tier and should land only after PRs 1–4 prove the
 exact-capture surface.
 
@@ -444,9 +445,9 @@ exact-capture surface.
 ## Sources
 
 - Motion hybrid engine (WAAPI `NativeAnimation` vs rAF `JSAnimation`, automatic
-  selection; GSAP is rAF/main-thread): motion.dev: *Improvements to the Web
+  selection; GSAP is rAF/main-thread): motion.dev — *Improvements to the Web
   Animations API*, *Web Animation Performance Tier List*; DeepWiki
-  *motiondivision/motion: Animation Engines*.
+  *motiondivision/motion — Animation Engines*.
 - CSS scroll-driven animations (`animation-timeline: scroll()/view()`, not
   Baseline, Chromium 115+/Safari 18+/Firefox flagged): MDN *Scroll-driven
   animations* / *animation-timeline*; Chrome for Developers blog.

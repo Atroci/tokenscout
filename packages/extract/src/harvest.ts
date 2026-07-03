@@ -10,6 +10,12 @@ export interface RawObservations {
   colors: { value: string; role: string }[];
   /** De-duplicated font-size strings as the browser reported them. */
   fontSizes: string[];
+  /** De-duplicated computed font-family stacks as the browser reported them. */
+  fontFamilies: string[];
+  /** De-duplicated computed font-weight strings as the browser reported them. */
+  fontWeights: string[];
+  /** De-duplicated computed line-height strings ("normal" excluded). */
+  lineHeights: string[];
   /** De-duplicated margin/padding/gap strings. */
   spacing: string[];
 }
@@ -36,7 +42,12 @@ export function harvest(
     url,
     breakpoint,
     colors: [...byKey.values()],
-    type: { sizes: raw.fontSizes },
+    type: {
+      sizes: raw.fontSizes,
+      families: raw.fontFamilies,
+      weights: raw.fontWeights,
+      lineHeights: raw.lineHeights,
+    },
     spacing: { values: raw.spacing },
   };
 }

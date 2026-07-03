@@ -286,7 +286,7 @@ um pacote de extração que controla um navegador headless. Detalhe completo em
       claro/escuro e identidade de token por breakpoint (atualmente achatada)
 
 O próximo foco é a captura responsiva multi-tela e a captura de movimento
-refinada: plano em
+refinada — plano em
 [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-and-motion.md).
 
 **Release:**

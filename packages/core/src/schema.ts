@@ -16,6 +16,12 @@ export interface ColorObservation {
 export interface TypeObservation {
   /** Verbatim font-size values, e.g. "16px", "1.5rem". */
   sizes: string[];
+  /** Verbatim computed font-family stacks, e.g. "Inter, ui-sans-serif, sans-serif". */
+  families?: string[];
+  /** Verbatim computed font-weight values, e.g. "400", "700". */
+  weights?: string[];
+  /** Verbatim computed line-height values, e.g. "24px" ("normal" excluded). */
+  lineHeights?: string[];
 }
 
 /** Observed spacing values (margin/padding/gap) for one page/breakpoint. */
@@ -43,8 +49,8 @@ export interface ColorValue {
 
 /** A single W3C DTCG token (minimal valid shape). */
 export interface DesignToken {
-  $value: string | ColorValue | DimensionValue | DurationValue;
-  $type: "color" | "dimension" | "duration";
+  $value: string | string[] | number | ColorValue | DimensionValue | DurationValue;
+  $type: "color" | "dimension" | "duration" | "fontFamily" | "fontWeight";
   $description?: string;
   $extensions?: Record<string, unknown>;
 }
@@ -70,7 +76,7 @@ export interface AnimationInput {
 /** A DTCG group: leaf tokens or nested groups, plus optional group-level
  * `$extensions`. tokenscout emits color-sprawl audit metrics there (analyzable,
  * unanalyzable, distinct, sprawl-ratio). Per DTCG, `$`-prefixed members are
- * reserved metadata, not tokens: consumers counting tokens skip them. */
+ * reserved metadata, not tokens — consumers counting tokens skip them. */
 export interface TokenGroup {
   [key: string]: DesignToken | TokenGroup | Record<string, unknown> | undefined;
   $extensions?: Record<string, unknown>;

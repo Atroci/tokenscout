@@ -6,6 +6,12 @@
 export type * from "./schema.js";
 export * from "./color/index.js";
 
-export { reduceTypeScale, type TypeScale } from "./type/index.js";
+export {
+  reduceTypeScale,
+  reduceFontFamilies,
+  reduceFontWeights,
+  reduceLineHeights,
+  type TypeScale,
+} from "./type/index.js";
 export { reduceSpacingScale, type SpacingScale } from "./spacing/index.js";
 export { assembleTokens, type AssembleOptions } from "./tokens/index.js";

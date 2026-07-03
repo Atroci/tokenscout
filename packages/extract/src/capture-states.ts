@@ -1,4 +1,4 @@
-// Gap-B: multi-state CSS diff: capture element styles before and after a
+// Gap-B: multi-state CSS diff — capture element styles before and after a
 // scroll or click trigger, then produce a structured property-level diff.
 // Designed for the private pipeline that documents interaction-driven CSS changes.
 

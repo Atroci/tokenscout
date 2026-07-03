@@ -12,7 +12,12 @@ import {
   type ColorInput,
 } from "../color/index.js";
 import { stableColorId } from "../color/id.js";
-import { reduceTypeScale } from "../type/index.js";
+import {
+  reduceTypeScale,
+  reduceFontFamilies,
+  reduceFontWeights,
+  reduceLineHeights,
+} from "../type/index.js";
 import { reduceSpacingScale } from "../spacing/index.js";
 import type {
   PageExtract,
@@ -46,6 +51,15 @@ export function assembleTokens(
 
   const fontSize = buildFontSizeGroup(pages, rootPx);
   if (fontSize) tokens.fontSize = fontSize;
+
+  const fontFamily = buildFontFamilyGroup(pages);
+  if (fontFamily) tokens.fontFamily = fontFamily;
+
+  const fontWeight = buildFontWeightGroup(pages);
+  if (fontWeight) tokens.fontWeight = fontWeight;
+
+  const lineHeight = buildLineHeightGroup(pages, rootPx);
+  if (lineHeight) tokens.lineHeight = lineHeight;
 
   const spacing = buildSpacingGroup(pages, rootPx);
   if (spacing) tokens.spacing = spacing;
@@ -84,7 +98,7 @@ function buildColorGroup(
   // Sprawl audit: count DISTINCT authored color strings we could vs. could not
   // turn into tokens. Honest about tokenscout's OWN parser coverage (hex / rgb /
   // hsl / named / oklch / oklab / lab / lch / hwb; color() is still a drop), not
-  // colorjs.io's: a color we now parse is no longer a "drop".
+  // colorjs.io's — a color we now parse is no longer a "drop".
   const analyzableValues = new Set<string>();
   const unanalyzableValues = new Set<string>();
   for (const page of pages) {
@@ -160,6 +174,55 @@ function buildFontSizeGroup(
   scale.sizes.forEach((size, i) => {
     group[`font-size-${i + 1}`] = {
       $value: { value: size, unit: "px" },
+      $type: "dimension",
+    };
+  });
+  return group;
+}
+
+function buildFontFamilyGroup(pages: PageExtract[]): TokenGroup | null {
+  const stacks = reduceFontFamilies(pages);
+  if (stacks.length === 0) return null;
+
+  const group: TokenGroup = {};
+  stacks.forEach((stack, i) => {
+    const fallbacks = stack
+      .split(",")
+      .map((name) => name.trim().replace(/^["']|["']$/g, ""))
+      .filter((name) => name.length > 0);
+    group[`font-family-${i + 1}`] = {
+      $value: fallbacks,
+      $type: "fontFamily",
+    };
+  });
+  return group;
+}
+
+function buildFontWeightGroup(pages: PageExtract[]): TokenGroup | null {
+  const weights = reduceFontWeights(pages);
+  if (weights.length === 0) return null;
+
+  const group: TokenGroup = {};
+  weights.forEach((value, i) => {
+    group[`font-weight-${i + 1}`] = {
+      $value: value,
+      $type: "fontWeight",
+    };
+  });
+  return group;
+}
+
+function buildLineHeightGroup(
+  pages: PageExtract[],
+  rootPx?: number,
+): TokenGroup | null {
+  const heights = reduceLineHeights(pages, rootPx);
+  if (heights.length === 0) return null;
+
+  const group: TokenGroup = {};
+  heights.forEach((value, i) => {
+    group[`line-height-${i + 1}`] = {
+      $value: { value, unit: "px" },
       $type: "dimension",
     };
   });

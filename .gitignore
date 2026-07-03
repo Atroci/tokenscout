@@ -6,3 +6,7 @@ dist/
 # Cloned upstream projects to study / prepare PRs against — never committed here.
 _upstreams/*
 !_upstreams/README.md
+
+# Ad-hoc dogfooding scans against real sites — local scratch, not published.
+/findings/
+/scripts/

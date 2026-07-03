@@ -17,6 +17,8 @@ export interface RawStackSignals {
   domMarkers: string[];
   /** ng-version attribute value if present (Angular emits its version here). */
   ngVersion: string | null;
+  /** Count of distinct class names matching a CSS-Modules hash pattern (e.g. "Button_root__a1B2c"). */
+  cssModulesClassCount: number;
 }
 
 /** Confidence in a single framework detection. "high" needs a definitive marker. */
@@ -84,13 +86,19 @@ export function profileStack(signals: RawStackSignals): StackProfile {
   const srcMatches = (needle: string): boolean =>
     srcs.some((s) => s.includes(needle));
 
-  // Next.js: __NEXT_DATA__ or #__next is definitive. React rides along (Next is React).
+  // Next.js: __NEXT_DATA__ or #__next is definitive, but both are Pages-Router
+  // markers only — the App Router renders neither. A /_next/static/ script src
+  // is emitted by both routers, so it's the one signal that holds across both.
   if (globals.has("__NEXT_DATA__")) {
     hit("Next.js", "high", "window.__NEXT_DATA__ present");
     hit("React", "high", "Next.js implies React");
   }
   if (markers.has("#__next")) {
     hit("Next.js", "high", "#__next hydration root present");
+    hit("React", "high", "Next.js implies React");
+  }
+  if (srcMatches("/_next/static/")) {
+    hit("Next.js", "high", "script src references /_next/static/");
     hit("React", "high", "Next.js implies React");
   }
 
@@ -174,6 +182,18 @@ export function profileStack(signals: RawStackSignals): StackProfile {
     hit("Shopify", "high", "script src references the Shopify CDN");
   }
 
+  // CSS Modules: bundlers rewrite class names to `<name>_<local>__<hash>` (or
+  // `_<local>_<hash>_<n>` for Vite). A handful of distinct matches is a strong
+  // fingerprint even when no JS framework marker fired (e.g. React apps with
+  // no SSR hydration root, or a build tool profileStack doesn't otherwise know).
+  if (signals.cssModulesClassCount >= 3) {
+    hit(
+      "CSS Modules",
+      "medium",
+      `${signals.cssModulesClassCount} class names match the CSS-Modules hash pattern`,
+    );
+  }
+
   const frameworks: FrameworkHit[] = [...best.entries()]
     .map(([name, confidence]) => ({ name, confidence }))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -213,7 +233,24 @@ function collectSignals(interest: string[]): RawStackSignals {
   const ngVersion = ngEl ? ngEl.getAttribute("ng-version") : null;
   if (ngVersion) domMarkers.push("ng-version");
 
-  return { globals, generator, scriptSrcs, domMarkers, ngVersion };
+  // CSS Modules class-name fingerprint: `Button_root__a1B2c` (webpack/Next) or
+  // `_button_1a2b3_1` (Vite). Count distinct matches across all elements.
+  const CSS_MODULES_RE = /^([A-Za-z0-9-]+_[A-Za-z0-9-]+__[a-zA-Z0-9]{4,8}|_[a-z0-9-]+_[a-z0-9]{4,8}_\d+)$/;
+  const cssModulesClasses = new Set<string>();
+  for (const el of Array.from(document.querySelectorAll("[class]"))) {
+    for (const cls of Array.from(el.classList)) {
+      if (CSS_MODULES_RE.test(cls)) cssModulesClasses.add(cls);
+    }
+  }
+
+  return {
+    globals,
+    generator,
+    scriptSrcs,
+    domMarkers,
+    ngVersion,
+    cssModulesClassCount: cssModulesClasses.size,
+  };
 }
 
 /** Load nothing new: profile the page already open in `page`. */

@@ -65,10 +65,24 @@ function collectTopologySignals(): RawTopologySignals {
   const mainChildren = mainEl
     ? Array.from(mainEl.children)
     : [];
-  const container =
+  let container: Element =
     mainEl && mainChildren.length >= 2
       ? mainEl
       : document.body;
+
+  // Zone-div sites (most hydrated SPAs) wrap the whole page in a single
+  // hydration-root / app-shell div, so the top level has exactly one child
+  // spanning the full document height and topology collapses to one giant
+  // "section". Descend through such single-child wrappers until real
+  // siblings appear, bounded so pathological markup can't loop forever.
+  for (let i = 0; i < 5; i++) {
+    const kids = Array.from(container.children);
+    if (kids.length !== 1) break;
+    const [only] = kids;
+    if (only.children.length < 2) break;
+    container = only;
+  }
+
   const children = Array.from(container.children);
 
   const viewportHeight = window.innerHeight;

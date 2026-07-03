@@ -12,6 +12,9 @@ test("harvest: counts colors by (value, role)", () => {
       { value: "rgb(226, 55, 68)", role: "color" },
     ],
     fontSizes: ["16px", "32px"],
+    fontFamilies: ["Inter, sans-serif"],
+    fontWeights: ["400", "700"],
+    lineHeights: ["24px"],
     spacing: ["8px", "24px"],
   });
 
@@ -33,9 +36,17 @@ test("harvest: passes type and spacing through into the seam shape", () => {
   const page = harvest("https://example.com/", 375, {
     colors: [],
     fontSizes: ["16px"],
+    fontFamilies: ["Inter, sans-serif"],
+    fontWeights: ["400"],
+    lineHeights: ["24px"],
     spacing: ["8px", "16px"],
   });
-  assert.deepEqual(page.type, { sizes: ["16px"] });
+  assert.deepEqual(page.type, {
+    sizes: ["16px"],
+    families: ["Inter, sans-serif"],
+    weights: ["400"],
+    lineHeights: ["24px"],
+  });
   assert.deepEqual(page.spacing, { values: ["8px", "16px"] });
   assert.deepEqual(page.colors, []);
 });

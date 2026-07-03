@@ -11,6 +11,7 @@ function empty(): RawStackSignals {
     scriptSrcs: [],
     domMarkers: [],
     ngVersion: null,
+    cssModulesClassCount: 0,
   };
 }
 
@@ -133,6 +134,36 @@ test("profileStack: SvelteKit payload implies Svelte at high", () => {
   assert.equal(
     profile.frameworks.find((f) => f.name === "Svelte")?.confidence,
     "high",
+  );
+});
+
+test("profileStack: Next.js App Router (no __NEXT_DATA__/#__next) is detected via /_next/static/ script src", () => {
+  // App Router renders neither __NEXT_DATA__ nor #__next, unlike Pages Router.
+  const profile = profileStack({
+    ...empty(),
+    scriptSrcs: ["https://site.test/_next/static/chunks/app/page.js"],
+  });
+  const next = profile.frameworks.find((f) => f.name === "Next.js");
+  assert.equal(next?.confidence, "high");
+  assert.equal(
+    profile.frameworks.find((f) => f.name === "React")?.confidence,
+    "high",
+  );
+});
+
+test("profileStack: CSS Modules hash-class pattern is medium at 3+ distinct matches", () => {
+  const profile = profileStack({ ...empty(), cssModulesClassCount: 3 });
+  assert.equal(
+    profile.frameworks.find((f) => f.name === "CSS Modules")?.confidence,
+    "medium",
+  );
+});
+
+test("profileStack: CSS Modules below the 3-match threshold is not reported", () => {
+  const profile = profileStack({ ...empty(), cssModulesClassCount: 2 });
+  assert.equal(
+    profile.frameworks.find((f) => f.name === "CSS Modules"),
+    undefined,
   );
 });
 

@@ -1,7 +1,12 @@
 // Zero-new-runtime-dep test suite using node:test. Run via tsx (dev dep).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { reduceTypeScale } from "../src/type/index.js";
+import {
+  reduceTypeScale,
+  reduceFontFamilies,
+  reduceFontWeights,
+  reduceLineHeights,
+} from "../src/type/index.js";
 import type { PageExtract } from "../src/schema.js";
 
 const close = (a: number, b: number, eps = 1e-9) =>
@@ -109,4 +114,90 @@ test("reduceTypeScale: monotonically shrinking input still yields ratio > 1", ()
   const r = reduceTypeScale([page(["31.25px", "25px", "20px", "16px"])]);
   assert.ok(r.ratio !== null);
   close(r.ratio as number, 1.25, 1e-9);
+});
+
+/** Build a PageExtract carrying only the font families/weights under test. */
+const typePage = (families: string[], weights: string[]): PageExtract => ({
+  url: "https://example.com",
+  breakpoint: 1280,
+  colors: [],
+  type: { sizes: [], families, weights },
+  spacing: { values: [] },
+});
+
+test("reduceFontFamilies: empty input -> empty list", () => {
+  assert.deepEqual(reduceFontFamilies([]), []);
+});
+
+test("reduceFontFamilies: dedupes verbatim stacks in first-seen order", () => {
+  const r = reduceFontFamilies([
+    typePage(["Inter, sans-serif", "Georgia, serif", "Inter, sans-serif"], []),
+  ]);
+  assert.deepEqual(r, ["Inter, sans-serif", "Georgia, serif"]);
+});
+
+test("reduceFontFamilies: flattens across multiple pages", () => {
+  const r = reduceFontFamilies([
+    typePage(["Inter, sans-serif"], []),
+    typePage(["Georgia, serif"], []),
+  ]);
+  assert.deepEqual(r, ["Inter, sans-serif", "Georgia, serif"]);
+});
+
+test("reduceFontFamilies: tolerates a missing families field", () => {
+  const bare: PageExtract = {
+    url: "https://example.com",
+    breakpoint: 1280,
+    colors: [],
+    type: { sizes: [] },
+    spacing: { values: [] },
+  };
+  assert.deepEqual(reduceFontFamilies([bare]), []);
+});
+
+test("reduceFontWeights: empty input -> empty list", () => {
+  assert.deepEqual(reduceFontWeights([]), []);
+});
+
+test("reduceFontWeights: dedupes and sorts ascending", () => {
+  const r = reduceFontWeights([typePage([], ["700", "400", "400"])]);
+  assert.deepEqual(r, [400, 700]);
+});
+
+test("reduceFontWeights: drops non-numeric weight keywords", () => {
+  const r = reduceFontWeights([typePage([], ["bold", "400"])]);
+  assert.deepEqual(r, [400]);
+});
+
+const lineHeightPage = (lineHeights: string[]): PageExtract => ({
+  url: "https://example.com",
+  breakpoint: 1280,
+  colors: [],
+  type: { sizes: [], lineHeights },
+  spacing: { values: [] },
+});
+
+test("reduceLineHeights: empty input -> empty list", () => {
+  assert.deepEqual(reduceLineHeights([]), []);
+});
+
+test("reduceLineHeights: parses px, sorts ascending, dedupes", () => {
+  const r = reduceLineHeights([lineHeightPage(["24px", "20px", "20px"])]);
+  assert.deepEqual(r, [20, 24]);
+});
+
+test("reduceLineHeights: converts rem using rootPx", () => {
+  const r = reduceLineHeights([lineHeightPage(["1.5rem"])], 16);
+  assert.deepEqual(r, [24]);
+});
+
+test("reduceLineHeights: tolerates a missing lineHeights field", () => {
+  const bare: PageExtract = {
+    url: "https://example.com",
+    breakpoint: 1280,
+    colors: [],
+    type: { sizes: [] },
+    spacing: { values: [] },
+  };
+  assert.deepEqual(reduceLineHeights([bare]), []);
 });

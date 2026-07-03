@@ -77,3 +77,53 @@ export function reduceTypeScale(
     unit: "px",
   };
 }
+
+/**
+ * Reduce every page's observed font-family stacks to a deduped list, in
+ * first-seen order. Verbatim: a computed `font-family` value is already the
+ * full author-declared fallback stack (e.g. "Inter, ui-sans-serif, sans-serif").
+ */
+export function reduceFontFamilies(pages: PageExtract[]): string[] {
+  const seen = new Set<string>();
+  for (const page of pages) {
+    for (const family of page.type.families ?? []) seen.add(family);
+  }
+  return [...seen];
+}
+
+/**
+ * Reduce every page's observed font-weight values to a deduped, ascending
+ * numeric list. Non-numeric weight keywords (rare post-computed-style) are
+ * dropped rather than guessed.
+ */
+export function reduceFontWeights(pages: PageExtract[]): number[] {
+  const weights = new Set<number>();
+  for (const page of pages) {
+    for (const raw of page.type.weights ?? []) {
+      const n = Number(raw);
+      if (Number.isFinite(n)) weights.add(n);
+    }
+  }
+  return [...weights].sort((a, b) => a - b);
+}
+
+/**
+ * Reduce every page's observed line-heights to a sorted, deduped px scale.
+ * Same parse/round/dedupe treatment as reduceTypeScale's sizes, no ratio
+ * detection (line-height doesn't follow a modular scale the way type does).
+ */
+export function reduceLineHeights(
+  pages: PageExtract[],
+  rootPx: number = 16,
+): number[] {
+  const px: number[] = [];
+  for (const page of pages) {
+    for (const raw of page.type.lineHeights ?? []) {
+      const v = parseLength(raw, rootPx);
+      if (v !== null) px.push(v);
+    }
+  }
+  return [...new Set(px.map((v) => Math.round(v * 100) / 100))].sort(
+    (a, b) => a - b,
+  );
+}

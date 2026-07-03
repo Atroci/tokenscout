@@ -6,9 +6,9 @@
   "type": "module",
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "npm run build -w tokenscout && npm run build -w @tokenscout/extract && npm run build -w @tokenscout/transform && npm run build -w @tokenscout/mcp",
-    "typecheck": "npm run build -w tokenscout && npm run typecheck -w tokenscout && npm run typecheck -w @tokenscout/extract && npm run typecheck -w @tokenscout/transform && npm run typecheck -w @tokenscout/mcp",
-    "test": "npm run build -w tokenscout && npm run test -w tokenscout && npm run test -w @tokenscout/extract && npm run test -w @tokenscout/transform",
+    "build": "npm run build -w tokenscout && npm run build -w @tokenscout/extract",
+    "typecheck": "npm run build -w tokenscout && npm run typecheck -w tokenscout && npm run typecheck -w @tokenscout/extract",
+    "test": "npm run build -w tokenscout && npm run test -w tokenscout && npm run test -w @tokenscout/extract",
     "lint": "eslint .",
     "format": "prettier --write \"packages/*/{src,test,examples}/**/*.ts\"",
     "format:check": "prettier --check \"packages/*/{src,test,examples}/**/*.ts\""

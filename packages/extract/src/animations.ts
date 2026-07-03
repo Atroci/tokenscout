@@ -24,7 +24,7 @@ export interface RawAnimations {
   /** @keyframes names defined in reachable stylesheets, e.g. "spin", "fade-in". */
   keyframes: string[];
   /**
-   * Verbatim animated property names: transition-property entries plus the
+   * Verbatim animated property names — transition-property entries plus the
    * properties mutated inside @keyframes that are actually applied to an
    * element. One entry per occurrence. Optional so hand-built fixtures stay
    * terse; the browser collector always provides it.
@@ -41,11 +41,11 @@ export interface RawAnimations {
 /**
  * Animated properties grouped by render cost, per the web.dev high-performance
  * -animation taxonomy: only compositor-only properties (transform/opacity) stay
- * off the main thread. Animating paint: and especially layout: properties
+ * off the main thread. Animating paint — and especially layout — properties
  * drops frames, so surfacing them is the performance-smell signal.
  */
 export interface AnimatedProperties {
-  /** Compositor-only: cheap to animate (transform, opacity, filter, ...). */
+  /** Compositor-only — cheap to animate (transform, opacity, filter, ...). */
   composited: string[];
   /** Animating these forces a repaint each frame (color, box-shadow, ...). */
   paint: string[];
@@ -57,12 +57,12 @@ export interface AnimatedProperties {
  * Reduced-motion accessibility coverage (WCAG 2.3.3 "Animation from
  * Interactions"; the `@media (prefers-reduced-motion: reduce)` query is
  * sufficient technique C39). This is a coverage signal, not a hard conformance
- * verdict: a declared guard is not proof every animation actually backs off.
+ * verdict — a declared guard is not proof every animation actually backs off.
  */
 export interface ReducedMotionCoverage {
   /** A `@media (prefers-reduced-motion: ...)` guard is declared somewhere. */
   declared: boolean;
-  /** The page animates but declares no reduced-motion guard: a coverage gap. */
+  /** The page animates but declares no reduced-motion guard — a coverage gap. */
   gap: boolean;
 }
 
@@ -87,7 +87,7 @@ const NOOP_EASINGS = new Set(["ease", "linear", "initial", "inherit", "unset"]);
  * Collapse a baked point-wise `linear()` easing to a single canonical token.
  * Animation libraries that resolve springs/custom curves at runtime (Framer
  * Motion, Motion One) serialize them as `linear(0, 0.0212, 0.0705, …)` with
- * dozens of stops: every spring yields a different ~60-number string, so left
+ * dozens of stops — every spring yields a different ~60-number string, so left
  * verbatim they flood the easings list with unreadable, never-deduplicated
  * noise. Normalizing to `"linear()"` keeps the design signal ("a baked easing
  * curve is in use") without the point list. Other easings pass through verbatim.
@@ -115,7 +115,7 @@ function parseTimeToMs(token: string): number | null {
 }
 
 /**
- * Compositor-only properties: the only ones web.dev recommends animating, since
+ * Compositor-only properties — the only ones web.dev recommends animating, since
  * they stay off the main thread ("restrict animations to opacity and transform").
  * filter/backdrop-filter and the individual transform longhands also composite.
  */
@@ -130,11 +130,11 @@ const COMPOSITED = new Set([
 ]);
 
 /**
- * Properties whose animation forces a layout (reflow) every frame: the
+ * Properties whose animation forces a layout (reflow) every frame — the
  * high-severity smell (web.dev: ~50% dropped frames for top/left vs ~1% for
  * transform). Shorthands and longhands are both listed because @keyframes steps
  * can serialize either. Anything not in COMPOSITED or here falls through to
- * "paint" (a repaint: milder than a reflow, but still off the compositor).
+ * "paint" (a repaint — milder than a reflow, but still off the compositor).
  */
 const TRIGGERS_LAYOUT = new Set([
   "width",
@@ -254,7 +254,7 @@ export function reduceAnimationTokens(raw: RawAnimations): AnimationTokens {
   const properties = classifyProperties(raw.properties ?? []);
 
   // "Has motion" is judged from signals that only appear when an element really
-  // transitions/animates (durations, easings, animated properties): not from
+  // transitions/animates (durations, easings, animated properties) — not from
   // @keyframes names, which can be defined but never applied.
   const hasMotion =
     durationsOut.length > 0 ||
@@ -280,7 +280,7 @@ function collectAnimations(): RawAnimations {
   const easings: string[] = [];
   const properties: string[] = [];
   const keyframes = new Set<string>();
-  // @keyframes the page actually applies: we read their animated properties
+  // @keyframes the page actually applies — we read their animated properties
   // below, skipping dead keyframes that no element uses.
   const usedAnimationNames = new Set<string>();
   let reducedMotionDeclared = false;

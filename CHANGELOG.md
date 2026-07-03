@@ -9,10 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `@tokenscout/mcp`: stdio MCP server exposing `inspect_site` and `extract_tokens` as native tools for Claude Code, Cursor, and Windsurf. Auto-generates a full `SiteReport` (DTCG tokens, icons, topology, stack, assets) or lightweight DTCG-only output. Install via `npm i -D @tokenscout/mcp playwright`.
-- `@tokenscout/transform`: zero-dependency format converters: `toCssVars(tokens)` → `:root { --color-...: ... }`, `toTailwindConfig(tokens)` → `{ theme: { colors, fontSize, spacing, transitionDuration } }`, and a `transform(tokens, format)` convenience wrapper (`"css-vars" | "tailwind" | "dtcg"`).
+- Token assembly now emits `fontFamily`, `fontWeight`, and `lineHeight` DTCG groups — the typography identity (`AssembleOptions`, `assembleTokens`) previously reported only `fontSize`, `color`, `spacing`, and `duration`. New `tokenscout/type` reducers: `reduceFontFamilies`, `reduceFontWeights`, `reduceLineHeights`.
+- `SiteReport.interaction`: page-level interaction driver (`static`/`scroll-driven`/`click-driven`/`hover-driven`/`time-driven`), composed into `inspectSite()` via the existing `detectInteractionModel` (previously exported but never called by the default pipeline). New `interaction` option, defaults to `true`.
 
-## [0.3.0]: 2026-06-25
+### Fixed
+
+- Stack profiler (`profileStack`) reported an empty `frameworks` array on every Next.js **App Router** site — its only markers (`window.__NEXT_DATA__`, `#__next`) are Pages-Router-only. Added a `/_next/static/` script-src signal, which both routers emit.
+- Stack profiler now also fingerprints CSS Modules (`Button_root__a1B2c` / `_button_1a2b3_1` hashed class patterns) as a medium-confidence signal, for React/bundler stacks that trip no other framework marker.
+- `extractPage()` read computed styles immediately after `load`, so reveal-on-scroll and lazy-mounted content (hero sections, carousels) never rendered and its sizes/colors/spacing were silently dropped. Now scrolls through and settles first (reusing `captureSite`'s existing scroll-and-settle pass) before sampling.
+- `mapPageTopology` collapsed to one giant section on "zone-div" sites that wrap the whole page in a single hydration-root/app-shell div. Now descends through single-child wrapper divs (bounded to 5 levels) until real sibling sections appear.
+- `extractSVGIcons` left icon-button SVGs unlabeled when `aria-label`/`title` sat on the wrapping `<button>`/`<a>` rather than the `<svg>` itself (the common pattern) — now falls back to the closest labeled interactive ancestor.
+
+## [0.3.0] — 2026-06-25
 
 `tokenscout` (core) **0.4.1** · `@tokenscout/extract` **0.3.0**. First npm publish of both packages (core was previously tagged but unpublished; extract is new).
 
@@ -23,34 +31,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   interactive elements (`a`, `button`, `[role=button]`, `img`, Framer markers,
   and anything with `cursor: pointer`) with the real Playwright pointer, so
   gesture animations (`whileHover` and friends) fire and the WAAPI hook records
-  them. Load + scroll alone never fired these, so hover effects: e.g. a hero
-  image that scales/brightens on hover: were silently missed. New options:
+  them. Load + scroll alone never fired these, so hover effects — e.g. a hero
+  image that scales/brightens on hover — were silently missed. New options:
   `interact` (default `true`) and `maxInteractTargets` (default `24`). Synthetic
   pointer events are deliberately not used: libraries such as Framer Motion gate
   on `event.isTrusted`, so only a real pointer triggers them.
-- `harvestStyles(page, selector?, depth?)`: full `getComputedStyle()` DOM tree
+- `harvestStyles(page, selector?, depth?)` — full `getComputedStyle()` DOM tree
   walk (40 properties, depth-4 by default) that returns a `StyleNode` tree
   mirroring the element hierarchy. The keystone for component-spec generation:
   feeds exact computed values instead of aggregate token signals.
-- `extractSVGIcons(page)`: collects all inline `<svg>` elements, deduplicates
+- `extractSVGIcons(page)` — collects all inline `<svg>` elements, deduplicates
   by content hash (djb2, 8-char base36), and returns a `SvgIconManifest`. Each
   `SvgIcon` carries `viewBox`, dimensions, semantic label, interactivity flag,
   and occurrence count.
-- `extractContent(page, opts?)`: verbatim text nodes, `alt` attributes,
+- `extractContent(page, opts?)` — verbatim text nodes, `alt` attributes,
   `aria-label` values, and `placeholder` strings from a page or scoped section.
-- `mapPageTopology(page)`: section inventory of the page's top-level layout
+- `mapPageTopology(page)` — section inventory of the page's top-level layout
   children: tag, role, CSS position, z-index, sticky/fixed flags, height, and
   whether the section is full-screen. Returns `PageTopology` including a
   `hasScrollSnap` flag.
-- `captureScrollState` / `captureClickState` / `diffStates`: snapshot computed
+- `captureScrollState` / `captureClickState` / `diffStates` — snapshot computed
   styles on an element before and after a scroll or click trigger, then diff
   them to a `StateDiff` array of `{ property, before, after }`. Fills the
   interaction-state gap that static single-pass extraction misses.
-- `detectInteractionModel(page, selector)`: classifies a section or element as
+- `detectInteractionModel(page, selector)` — classifies a section or element as
   `static`, `scroll-driven`, `click-driven`, `hover-driven`, or `time-driven`,
   with confidence and mechanism evidence. Prevents the #1 cloner mistake:
   building click-based UI when the original is scroll-driven.
-- `diffBreakpoints(page, url, selectors, opts?)`: for each selector, captures
+- `diffBreakpoints(page, url, selectors, opts?)` — for each selector, captures
   layout-property snapshots at multiple viewport widths (default 1440/768/390)
   and diffs them into `LayoutChange[]` entries: property, breakpoint where the
   change first appears, before/after values.
@@ -73,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to a single `linear()` token in both the CSS and WAAPI reducers, instead of
   flooding the easings list with unreadable, never-deduplicated point strings.
 
-## [0.4.0]: 2026-06-13
+## [0.4.0] — 2026-06-13
 
 `tokenscout` (core) **0.4.0** · `@tokenscout/extract` **0.2.0**. Released on GitHub; npm publish pending account auth (registry still has `tokenscout@0.3.0`).
 
@@ -84,14 +92,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   default space). Components accept numbers or percentages, an optional `/ alpha`,
   `none` channels, and angles in deg/grad/rad/turn; out-of-sRGB-gamut results are
   clamped per channel (full gamut mapping is deferred). Previously these returned
-  `null` and the colors were silently dropped from the token set. `color()`: the
-  parameterized multi-colorspace form: is still unsupported and returns `null`.
+  `null` and the colors were silently dropped from the token set. `color()` — the
+  parameterized multi-colorspace form — is still unsupported and returns `null`.
 - Animation tokens now classify every animated property by render cost
   (`AnimationTokens.properties`: `composited` / `paint` / `layout`), following
   the web.dev high-performance-animation taxonomy. Compositor-only properties
   (`transform`, `opacity`, `filter`, …) are cheap; animating paint properties
   (`color`, `box-shadow`, …) forces a repaint, and animating layout properties
-  (`width`, `top`, `margin`, …) forces a reflow every frame: the latter two are
+  (`width`, `top`, `margin`, …) forces a reflow every frame — the latter two are
   performance smells. Property names are read from `transition-property` and from
   the steps of `@keyframes` that an element actually applies (unused keyframes
   are ignored); they are lower-cased, vendor-prefix-stripped, and de-duplicated.
@@ -101,12 +109,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the page declares a `@media (prefers-reduced-motion: ...)` guard in any
   reachable stylesheet (WCAG 2.3.3, sufficient technique C39); `gap` is true when
   the page animates but declares no such guard. It is a coverage signal, not a
-  hard conformance verdict: a declared guard is not proof every animation backs
+  hard conformance verdict — a declared guard is not proof every animation backs
   off (behavioral confirmation under emulated reduced-motion is a later step).
 - Runtime motion capture via the Web Animations API (`extractRuntimeMotion`):
-  snapshots every live animation from `document.getAnimations()`: including
+  snapshots every live animation from `document.getAnimations()` — including
   JS-driven / WAAPI (`element.animate()`) motion that never appears as a CSS
-  transition/animation longhand: with each animation's animated properties,
+  transition/animation longhand — with each animation's animated properties,
   duration, and play state, and an aggregate compositor/paint/layout
   classification reusing the same performance-smell taxonomy.
 - Minimal "rendering input for analysis" capture worker (`captureSite`): drives
@@ -133,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   scopes per-breakpoint token identity (today all `PageExtract`s flatten into
   one merged token set, dissolving mobile vs desktop differences) and the
   Phase 4 motion differentiators (library detection, WAAPI timelines, Lottie
-  download, scroll-driven capture, motion-reference video). Docs only: no
+  download, scroll-driven capture, motion-reference video). Docs only — no
   package code change yet. (Note: the private parent `web-forensics` pipeline's
   "CSS-only animation, no JS anim libs" decision is its own boundary and does
   not constrain tokenscout's roadmap.)
