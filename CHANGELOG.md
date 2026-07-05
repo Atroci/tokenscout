@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-07-05
+
+`tokenscout` (core) **0.5.0** · `@tokenscout/extract` **0.4.0**.
+
 ### Added
 
 - `tokenscout/color`: `relativeLuminance`, `contrastRatio`, `wcagVerdict` — WCAG 2.2 SC 1.4.3 contrast math (the exact WCAG linearization threshold, not the sRGB-EOTF one `rgbToLab` uses, so ratios agree with checkers like WebAIM's).

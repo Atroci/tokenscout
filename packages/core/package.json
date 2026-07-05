@@ -1,6 +1,6 @@
 {
   "name": "tokenscout",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Extract design tokens from a live, rendered website: perceptual color clustering, type and spacing scales.",
   "type": "module",
   "types": "./dist/index.d.ts",
