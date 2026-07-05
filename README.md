@@ -19,7 +19,8 @@ Two packages:
 - **`tokenscout`** (core), zero runtime dependencies. You give it style
   observations from a page (colors, font sizes, spacing) and it returns a
   deduplicated, structured token document. Color clustering, type and spacing
-  scale detection, and DTCG export are all implemented and tested.
+  scale detection, WCAG contrast-pair audit, and DTCG export are all
+  implemented and tested.
 - **`@tokenscout/extract`**, which drives a headless browser (Playwright) to
   collect those observations from a live URL for you: computed styles at one or
   more breakpoints, with optional same-origin crawling. Image-asset harvesting
@@ -249,6 +250,16 @@ Honest about the edges, since they affect output:
   are flattened into one token set, so mobile/desktop differences dissolve, and
   light/dark themes are not captured separately. Both are next-focus work (see
   Roadmap).
+- **Contrast pairs are a proxy, not exhaustive.** `com.tokenscout.contrast-pairs`
+  cross-joins the top 3 clusters used as `background-color` against the top 3
+  used as `color` — the combinations a designer would actually check, not
+  every color pairing on the page. Element-level "this exact button fails
+  contrast" reporting would need per-element geometry, which is out of scope
+  for a computed-style/CSS-only tool (see touch-target geometry below).
+- **No element-level geometry** (button/target width, height, position). Page
+  topology reports section-level layout only. Fitts's-Law-style touch-target
+  auditing needs per-element boxes at a given breakpoint, which belongs in a
+  browser-driven layer (`@tokenscout/extract` or a consumer), not core.
 
 ## Roadmap
 
@@ -262,6 +273,10 @@ package that drives a headless browser. Full detail in
 - [x] Type scale reducer
 - [x] Spacing scale reducer
 - [x] `design-tokens.json` (W3C DTCG) export
+- [x] WCAG contrast-pair audit (background/text cross-join, 4.5:1 / 3:1 verdicts)
+- [ ] Semantic role aliasing (`color.background.canvas`, `color.action.primary`,
+      …, inferred from usage) — prerequisite for a `shadcn` transform target
+- [ ] Radius / shadow / border / breakpoint token families
 
 **Extract (`@tokenscout/extract`, Playwright peer):**
 - [x] Live crawl + computed-style extraction at breakpoints

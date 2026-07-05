@@ -8,8 +8,11 @@ import {
   clusterColors,
   parseColor,
   nearestNamedColor,
+  contrastRatio,
+  wcagVerdict,
   DEFAULT_DELTA_E,
   type ColorInput,
+  type Cluster,
 } from "../color/index.js";
 import { stableColorId } from "../color/id.js";
 import {
@@ -159,8 +162,48 @@ function buildColorGroup(
     "com.tokenscout.distinct": distinct,
     "com.tokenscout.sprawl-ratio":
       Math.round((analyzable / distinct) * 100) / 100,
+    "com.tokenscout.contrast-pairs": computeContrastPairs(clusters),
   };
   return group;
+}
+
+interface ContrastPair {
+  background: string;
+  text: string;
+  ratio: number;
+  wcag: { normalText: string; largeText: string };
+}
+
+const CONTRAST_CANDIDATES = 3;
+
+/**
+ * Likely background/text pairs, cross-joined from the top clusters used as
+ * `background-color` and the top clusters used as `color` (text paint),
+ * ranked by usage-count. Not exhaustive — a proxy for "which pairs a
+ * designer would actually check", not every color combination on the page.
+ */
+function computeContrastPairs(clusters: Cluster[]): ContrastPair[] {
+  const backgrounds = clusters
+    .filter((c) => c.cssProperties.includes("background-color"))
+    .slice(0, CONTRAST_CANDIDATES);
+  const texts = clusters
+    .filter((c) => c.cssProperties.includes("color"))
+    .slice(0, CONTRAST_CANDIDATES);
+
+  const pairs: ContrastPair[] = [];
+  for (const bg of backgrounds) {
+    for (const fg of texts) {
+      if (bg.canonical === fg.canonical) continue;
+      const ratio = contrastRatio(bg.rgb, fg.rgb);
+      pairs.push({
+        background: bg.canonical,
+        text: fg.canonical,
+        ratio: Math.round(ratio * 100) / 100,
+        wcag: wcagVerdict(ratio),
+      });
+    }
+  }
+  return pairs;
 }
 
 function buildFontSizeGroup(

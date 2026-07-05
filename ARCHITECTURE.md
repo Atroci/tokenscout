@@ -21,7 +21,7 @@ tokenscout/                        repo root (private workspace; not published)
    │     ├─ index.ts               public entry, re-exports the subpaths
    │     ├─ schema.ts              contract types (PageExtract, DesignTokens, …)
    │     ├─ length.ts              px/rem length parsing, shared by the reducers
-   │     ├─ color/                 lab · parse · cluster
+   │     ├─ color/                 lab · parse · cluster · contrast (WCAG ratio)
    │     ├─ type/                  type-scale reducer
    │     ├─ spacing/               spacing-scale reducer
    │     └─ tokens/                assemble → design-tokens.json (W3C DTCG)

@@ -42,6 +42,20 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
       `usage-count`, `css-properties`, `member-count` / `members`
 - [x] Stable, name-hinted hashed token ids (deterministic across runs)
 - [x] **v0.3.0 published to npm with build provenance.**
+- [x] WCAG contrast-pair audit: `com.tokenscout.contrast-pairs` on the color
+      group, cross-joining top background/text clusters with a ratio + 4.5:1
+      / 3:1 verdict. Still measurement, not judgment — see Non-goals.
+- [ ] Semantic role aliasing (`color.background.canvas`, `color.text.primary`,
+      `color.action.primary`, … inferred from `cssProperties` + selector
+      context, not just raw clusters). Real prerequisite for a `shadcn`-style
+      export target and for "paste this and it looks right" exports generally.
+- [ ] Per-token source evidence: retain example selectors / DOM roles a
+      cluster was seen on (not just the CSS property), so "is this token
+      dominant, structural, or accidental?" is answerable from the token
+      alone.
+- [ ] New token families: radius, shadow/elevation, border, z-index/layers,
+      container widths, breakpoints. Currently only color / type / spacing /
+      duration are captured.
 
 ### Phase 3: Extraction (`@tokenscout/extract`) (in progress)
 - [x] Computed-style extraction at multiple breakpoints (the CSSOM read)
@@ -54,6 +68,18 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
       deduplicated asset manifest (`discoverAssets`, `buildAssetManifest`).
 - [x] Asset download: fetch the manifest entries to disk (`downloadAssets`) for
       the redesign-migration "copy the old site's images" workflow.
+- [ ] CSS custom-property recovery: read declared `--custom-properties` (not
+      just resolved computed values), including dark-mode / theme-scope
+      overrides — recovers a site's actual naming system, which clustering
+      alone throws away.
+- [ ] Pseudo-state / interaction-state capture (`:hover`, `:focus-visible`,
+      `:active`, `:disabled`, `[aria-expanded]`, …) — a site's "feel" is often
+      encoded only in these states, invisible to a single static snapshot.
+- [ ] Per-element geometry (selector, role, box `{width, height}`, nearest-
+      neighbor distance) for interactive elements at a given breakpoint —
+      needed for Fitts's-Law / touch-target auditing (WCAG 2.2 target-size).
+      Belongs here, not in core: needs the browser/DOM, not just computed
+      styles already collected.
 
 ### Phase 4: Animation capture (`@tokenscout/extract`)
 The hard, differentiating layer. Web motion comes from three sources, captured at
@@ -133,6 +159,20 @@ dark-mode palettes are never even painted. None of this is done yet:
 - [ ] Submit to design-tooling lists (e.g. Awesome-Design-Tokens) once published
       and proven, not before (and never to digital-forensics lists; the name
       collision is a coincidence)
+
+### Backlog (not yet a phase)
+Later-stage ideas, parked here instead of lost:
+- Design-token export (`@tokenscout/transform` or similar): render a token
+  document as a drop-in CSS-vars / Tailwind / shadcn file instead of raw
+  JSON. Built and reverted once already (scope cut back to core+extract);
+  revisit deliberately rather than re-adding piecemeal.
+- Component fingerprinting (recurring `button.primary` / `card.pricing` /
+  `navbar.sticky`-style patterns, with their full token set per instance) —
+  valuable, but needs source evidence (Phase 2) and per-element geometry
+  (Phase 3) first; premature before either lands.
+- Site-to-site diff (`tokenscout diff a.json b.json`) for competitive palette/
+  spacing/motion comparison — a `@tokenscout/diff` package, likely, once
+  there's more than one report to usefully diff against in practice.
 
 ## Non-goals
 - Not a digital-forensics / DFIR tool (the name shares a word, nothing else).

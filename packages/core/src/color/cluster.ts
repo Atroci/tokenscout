@@ -39,6 +39,8 @@ export interface Cluster {
   cssProperties: string[];
   /** Lab of the canonical member, rounded to 2dp. */
   lab: Lab;
+  /** sRGB of the canonical member (0..1 channels). */
+  rgb: Rgb;
 }
 
 class UnionFind {
@@ -108,6 +110,7 @@ export function clusterColors(
         ),
       ].sort(),
       lab: roundLab(rgbToLab(canonical.rgb)),
+      rgb: canonical.rgb,
     });
   }
 

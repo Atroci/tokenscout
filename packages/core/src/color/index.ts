@@ -8,3 +8,9 @@ export {
 } from "./cluster.js";
 export { nearestNamedColor, NAMED_COLORS } from "./named.js";
 export { stableColorId, hashString } from "./id.js";
+export {
+  relativeLuminance,
+  contrastRatio,
+  wcagVerdict,
+  type WcagVerdict,
+} from "./contrast.js";

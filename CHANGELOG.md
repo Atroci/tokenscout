@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `tokenscout/color`: `relativeLuminance`, `contrastRatio`, `wcagVerdict` — WCAG 2.2 SC 1.4.3 contrast math (the exact WCAG linearization threshold, not the sRGB-EOTF one `rgbToLab` uses, so ratios agree with checkers like WebAIM's).
+- Color group `$extensions["com.tokenscout.contrast-pairs"]`: cross-joins the top 3 clusters used as `background-color` against the top 3 used as `color`, each with a computed ratio and pass/fail verdict at 4.5:1 (normal text) / 3:1 (large text).
 - Token assembly now emits `fontFamily`, `fontWeight`, and `lineHeight` DTCG groups — the typography identity (`AssembleOptions`, `assembleTokens`) previously reported only `fontSize`, `color`, `spacing`, and `duration`. New `tokenscout/type` reducers: `reduceFontFamilies`, `reduceFontWeights`, `reduceLineHeights`.
 - `SiteReport.interaction`: page-level interaction driver (`static`/`scroll-driven`/`click-driven`/`hover-driven`/`time-driven`), composed into `inspectSite()` via the existing `detectInteractionModel` (previously exported but never called by the default pipeline). New `interaction` option, defaults to `true`.
 
