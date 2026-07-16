@@ -17,6 +17,7 @@ import { chromium, type Browser, type Page } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { extractRuntimeMotion, type RuntimeMotion } from "./runtime-motion.js";
+import { withProgressPhase, type ProgressListener } from "./progress.js";
 
 export interface CaptureOptions {
   /** Directory to write screenshots + capture.json into. Created if missing. */
@@ -34,6 +35,8 @@ export interface CaptureOptions {
    * /dev/shm exhaustion). Add `--no-sandbox` here only for root containers.
    */
   launchArgs?: string[];
+  /** Optional structured lifecycle observer. Listener errors never abort capture. */
+  onProgress?: ProgressListener;
 }
 
 /** One captured theme state for a URL. */
@@ -69,7 +72,10 @@ function slug(url: string): string {
  * then return to the top and let entrance transitions finish. Without this, a
  * full-page screenshot of an IntersectionObserver-driven page is mostly blank.
  */
-export async function scrollAndSettle(page: Page, settleMs: number): Promise<void> {
+export async function scrollAndSettle(
+  page: Page,
+  settleMs: number,
+): Promise<void> {
   await page.evaluate(async () => {
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const step = Math.max(200, Math.floor(window.innerHeight * 0.8));
@@ -89,6 +95,8 @@ async function captureOne(
   browser: Browser,
   url: string,
   opts: CaptureOptions,
+  completedBefore: number,
+  total: number,
 ): Promise<CaptureReport> {
   const width = opts.width ?? 1280;
   const settleMs = opts.settleMs ?? 800;
@@ -97,30 +105,44 @@ async function captureOne(
     opts.dark === false ? ["light"] : ["light", "dark"];
 
   const captures: ThemeCapture[] = [];
-  for (const theme of themes) {
-    // One fresh context per capture, closed immediately after — bounds memory on
-    // the shared, RAM-tight host instead of accumulating state in one context.
-    const context = await browser.newContext({
-      viewport: { width, height: 900 },
-      colorScheme: theme,
-    });
-    const page = await context.newPage();
-    try {
-      await page.goto(url, { waitUntil: "load" });
-      // Snapshot motion while entrance animations are still running at load.
-      const motion = await extractRuntimeMotion(page);
-      // Reveal-on-scroll / lazy content stays opacity:0 until scrolled into view,
-      // so a naive full-page shot is blank — scroll through and settle first.
-      if (scroll) await scrollAndSettle(page, settleMs);
-      const screenshot = `${slug(url)}-${theme}.png`;
-      await page.screenshot({
-        path: join(opts.outDir, screenshot),
-        fullPage: true,
-      });
-      captures.push({ theme, screenshot, motion });
-    } finally {
-      await context.close();
-    }
+  for (const [themeIndex, theme] of themes.entries()) {
+    const capture = await withProgressPhase(
+      opts.onProgress,
+      {
+        phase: "screenshot",
+        url,
+        current: completedBefore + themeIndex + 1,
+        total,
+        detail: { theme, width },
+      },
+      async () => {
+        // One fresh context per capture, closed immediately after — bounds memory on
+        // the shared, RAM-tight host instead of accumulating state in one context.
+        const context = await browser.newContext({
+          viewport: { width, height: 900 },
+          colorScheme: theme,
+        });
+        const page = await context.newPage();
+        try {
+          await page.goto(url, { waitUntil: "load" });
+          // Snapshot motion while entrance animations are still running at load.
+          const motion = await extractRuntimeMotion(page);
+          // Reveal-on-scroll / lazy content stays opacity:0 until scrolled into view,
+          // so a naive full-page shot is blank — scroll through and settle first.
+          if (scroll) await scrollAndSettle(page, settleMs);
+          const screenshot = `${slug(url)}-${theme}.png`;
+          await page.screenshot({
+            path: join(opts.outDir, screenshot),
+            fullPage: true,
+          });
+          return { theme, screenshot, motion };
+        } finally {
+          await context.close();
+        }
+      },
+      (result) => ({ screenshot: result.screenshot }),
+    );
+    captures.push(capture);
   }
   return { url, captures };
 }
@@ -137,22 +159,55 @@ export async function captureSite(
   opts: CaptureOptions,
 ): Promise<CaptureReport[]> {
   const urls = Array.isArray(targets) ? targets : [targets];
-  await mkdir(opts.outDir, { recursive: true });
+  const themesPerUrl = opts.dark === false ? 1 : 2;
+  const total = urls.length * themesPerUrl;
+  const runUrl = urls.length === 1 ? urls[0] : undefined;
 
-  const browser = await chromium.launch({
-    args: [...BASE_ARGS, ...(opts.launchArgs ?? [])],
-  });
-  try {
-    const reports: CaptureReport[] = [];
-    for (const url of urls) {
-      reports.push(await captureOne(browser, url, opts));
-    }
-    await writeFile(
-      join(opts.outDir, "capture.json"),
-      JSON.stringify(reports, null, 2),
-    );
-    return reports;
-  } finally {
-    await browser.close();
-  }
+  return withProgressPhase(
+    opts.onProgress,
+    {
+      phase: "run",
+      url: runUrl,
+      detail: { operation: "capture-site", targets: urls.length },
+    },
+    async () => {
+      await mkdir(opts.outDir, { recursive: true });
+
+      const browser = await withProgressPhase(
+        opts.onProgress,
+        { phase: "browser", url: runUrl },
+        () =>
+          chromium.launch({
+            args: [...BASE_ARGS, ...(opts.launchArgs ?? [])],
+          }),
+      );
+      try {
+        const reports: CaptureReport[] = [];
+        for (const [urlIndex, url] of urls.entries()) {
+          reports.push(
+            await captureOne(
+              browser,
+              url,
+              opts,
+              urlIndex * themesPerUrl,
+              total,
+            ),
+          );
+        }
+        await writeFile(
+          join(opts.outDir, "capture.json"),
+          JSON.stringify(reports, null, 2),
+        );
+        return reports;
+      } finally {
+        await browser.close();
+      }
+    },
+    (reports) => ({
+      screenshots: reports.reduce(
+        (sum, report) => sum + report.captures.length,
+        0,
+      ),
+    }),
+  );
 }

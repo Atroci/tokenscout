@@ -1,7 +1,7 @@
 {
   "name": "tokenscout",
-  "version": "0.5.0",
-  "description": "Extract design tokens from a live, rendered website: perceptual color clustering, type and spacing scales.",
+  "version": "0.5.1",
+  "description": "Reduce rendered website observations into the token layer of an evidence-backed redesign baseline.",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -48,6 +48,8 @@
     "cielab",
     "delta-e",
     "design-system",
+    "website-redesign",
+    "website-migration",
     "web"
   ],
   "license": "MIT",

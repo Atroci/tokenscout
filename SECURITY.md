@@ -41,21 +41,23 @@ Please allow a reasonable window for a fix before any public disclosure.
 
 ## Scope
 
-tokenscout is a zero-runtime-dependency TypeScript library. It performs pure
-color math (sRGB to CIELAB, ΔE, clustering) over values you pass in. It makes
-no network calls, reads no files, and holds no secrets or credentials. The
-most relevant classes of report are therefore:
+The `tokenscout` core is a zero-runtime-dependency TypeScript library. It
+performs pure token reduction over values you pass in and makes no network or
+filesystem calls. `@tokenscout/extract` is the browser boundary: it navigates
+consumer-supplied URLs, reads rendered pages, can download discovered assets,
+and can write study artifacts. It holds no credentials itself. Relevant report
+classes include:
 
 - correctness bugs that could be triggered into a crash or hang by crafted
   input (e.g. a malformed color string causing unbounded work),
-- any future surface (planned: headless crawl / computed-style extraction)
-  that touches the network or the filesystem.
+- unsafe URL handling, path traversal, or unintended file writes in the
+  extractor, asset downloader, screenshot capture, or study bundle.
 
 ## Supply chain
 
-- Zero runtime dependencies is an intentional security guarantee.
-  Consumers inherit no transitive runtime risk. Adding a runtime dependency
-  is treated as a security-relevant change, not a routine one.
+- Zero runtime dependencies is an intentional guarantee of the core package.
+  Browser weight stays in `@tokenscout/extract`, with Playwright as a peer
+  dependency owned by the consumer.
 - The lockfile (`package-lock.json`) is committed.
 - Releases are published with npm **provenance** so the published tarball can
   be traced to the exact source commit and build workflow. Verify with

@@ -1,5 +1,12 @@
 # tokenscout architecture
 
+## Product boundary
+
+TokenScout helps small web agencies build an evidence-backed redesign baseline
+when an inherited live client website is the only reliable reference. The
+output is a reviewable evidence pack, not recovered design intent, a complete
+design system, or replacement creative direction.
+
 ## Invariant
 
 The `tokenscout` core package carries no runtime dependencies: there is no
@@ -9,7 +16,7 @@ Everything that touches Chrome will live in a separate package. That keeps
 
 ## Layout
 
-Two packages in an npm workspace. The published core never depends on a browser.
+Three packages in an npm workspace. The published core never depends on a browser.
 
 ```
 tokenscout/                        repo root (private workspace; not published)
@@ -25,17 +32,22 @@ tokenscout/                        repo root (private workspace; not published)
    │     ├─ type/                  type-scale reducer
    │     ├─ spacing/               spacing-scale reducer
    │     └─ tokens/                assemble → design-tokens.json (W3C DTCG)
-   └─ extract/                     →  published as  "@tokenscout/extract"
+   ├─ extract/                     →  published as  "@tokenscout/extract"
       └─ src/
          ├─ index.ts               extractSite / extractTokens
+         ├─ design-dna.ts          evidence → transferable study artifact
          ├─ crawl.ts               same-origin link discovery
          ├─ extract-page.ts        getComputedStyle @ breakpoints
-         └─ harvest.ts             raw observations → PageExtract (pure)
+         ├─ harvest.ts             raw observations → PageExtract (pure)
+         └─ capture.ts             light/dark screenshot evidence
+   └─ transform/                   →  published as  "@tokenscout/transform"
+      └─ src/                      DTCG → CSS vars / Tailwind config
 ```
 
-Still on the roadmap inside extract: image/asset harvesting and animation
-capture (CSS tokens, Lottie, library detection, screencast, Tier-3 WAAPI/rAF
-instrumentation). See [ROADMAP.md](./ROADMAP.md).
+The extractor also contains composable collectors for assets, CSS and WAAPI
+motion, stack, icons, topology, interaction state, content, and responsive
+layout diffs. See [ROADMAP.md](./ROADMAP.md) for what is default, experimental,
+or still missing.
 
 The published core name is `tokenscout`. Browser weight lives only in
 `@tokenscout/extract`, with Playwright as a peer dependency.
@@ -46,6 +58,8 @@ The published core name is `tokenscout`. Browser weight lives only in
 @tokenscout/extract  ──depends on──▶  tokenscout (core)
         │
         └──peerDependency──▶  playwright   (consumer installs it + browsers)
+
+@tokenscout/transform ──depends on──▶ tokenscout (schema contract)
 
 core knows NOTHING about Playwright: pure functions over plain data.
 ```
@@ -100,19 +114,26 @@ const tokens: DesignTokens = assembleTokens(pages);   // clusterColors() etc. ru
 call. You can still build `PageExtract[]` by hand (or from your own extractor)
 and call `assembleTokens` directly, with no browser involved.
 
+`studySite()` layers a deterministic evidence contract over `inspectSite()` and
+`captureSite()`. It writes the raw report first, then Design DNA JSON/Markdown
+whose inferences retain pointers back to measured evidence. No LLM runs inside
+the package.
+
 ## CI
 
-Two jobs (`.github/workflows/ci.yml`):
+Three jobs (`.github/workflows/ci.yml`):
 
 - **core**: `lint → build → typecheck → test` plus a production-dependency
   audit, no browser. Fast; runs on every push and PR.
+- **transform**: builds core, then builds, typechecks, and tests both output
+  formats.
 - **extract**: installs Chromium (`npx playwright install --with-deps chromium`),
   builds core then extract, and runs the smoke extraction against a local
   fixture. Slower, and isolated so it never slows the core's hot path.
 
 ## Open decisions
 
-- **npm scope** for `@tokenscout/extract` (create the `tokenscout` npm org on
-  publish) versus unscoped `tokenscout-extract`.
 - Whether Tier-3 animation instrumentation graduates from research into a
   supported feature, or stays an opt-in experimental export.
+- What evidence threshold is sufficient to infer semantic token roles without
+  turning an unknown into a polished false claim.

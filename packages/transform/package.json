@@ -1,7 +1,7 @@
 {
-  "name": "@tokenscout/extract",
-  "version": "0.5.0",
-  "description": "Turn an undocumented live website into an evidence-backed redesign baseline for scoping and rebuilding.",
+  "name": "@tokenscout/transform",
+  "version": "0.1.0",
+  "description": "Render the token layer of a TokenScout redesign baseline as CSS variables or Tailwind config.",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -23,14 +23,11 @@
   },
   "keywords": [
     "design-tokens",
-    "design-system",
-    "playwright",
     "css",
-    "computed-style",
-    "website-audit",
+    "tailwind",
+    "css-variables",
+    "design-system",
     "website-redesign",
-    "website-migration",
-    "web-agency",
     "tokenscout"
   ],
   "license": "MIT",
@@ -38,17 +35,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Atroci/tokenscout.git",
-    "directory": "packages/extract"
+    "directory": "packages/transform"
   },
   "dependencies": {
     "tokenscout": "^0.5.0"
-  },
-  "peerDependencies": {
-    "playwright": ">=1.40"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "playwright": "^1.60.0"
   },
   "engines": {
     "node": ">=20"

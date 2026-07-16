@@ -32,6 +32,27 @@ jobs:
       - name: Audit (production deps)
         run: npm audit --omit=dev --audit-level=high
 
+  transform:
+    name: Transform (typecheck, build, test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build core (dependency)
+        run: npm run build -w tokenscout
+      - name: Build transform
+        run: npm run build -w @tokenscout/transform
+      - name: Typecheck transform
+        run: npm run typecheck -w @tokenscout/transform
+      - name: Test transform
+        run: npm run test -w @tokenscout/transform
+
   extract:
     name: Extract (browser smoke)
     runs-on: ubuntu-latest

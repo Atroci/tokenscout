@@ -1,14 +1,15 @@
 # Contributing to tokenscout
 
-Thanks for your interest. tokenscout is a small, **zero-runtime-dependency**
-TypeScript library for extracting design tokens from live, rendered websites.
-The first public surface is the perceptual color module.
+Thanks for your interest. tokenscout is a TypeScript workspace for studying
+undocumented live client websites as evidence-backed redesign baselines. Its
+core package stays **zero-runtime-dependency**; browser work and output
+transforms live separately.
 
 ## Ground rules
 
-- **Zero runtime dependencies.** The published package must not add a single
-  runtime dependency. Dev dependencies (TypeScript, test/lint tooling) are
-  fine. A PR that adds a `dependencies` entry will be asked to remove it.
+- **Zero runtime dependencies in core.** The `tokenscout` package must not add a
+  `dependencies` entry. Browser work belongs in `@tokenscout/extract`, with
+  Playwright kept as a peer dependency.
 - **ESM + TypeScript, Node 20+.** Source is `.ts`, output is ESM in `dist/`.
 - **Pure functions where possible.** The color math is deliberately small and
   side-effect free; keep new primitives in the same spirit.
@@ -20,8 +21,9 @@ The first public surface is the perceptual color module.
 git clone https://github.com/Atroci/tokenscout.git
 cd tokenscout
 npm ci
-npm run typecheck   # tsc --noEmit
-npm run build       # tsc -> dist/
+npm run lint
+npm run typecheck
+npm test
 ```
 
 ## Pull request process
@@ -36,11 +38,12 @@ npm run build       # tsc -> dist/
 
 ## Good first contributions
 
-This is an open-core project. Areas where help is especially welcome:
+Areas where help is especially welcome:
 
 - Color science: additional ΔE formulas (ΔE2000), better cluster canonicalization.
-- CSS value parsing: more color notations (`hsl()`, `color()`, named colors).
-- Token-scale heuristics for the upcoming type and spacing reducers.
+- CSS value parsing: `color()` support and better out-of-gamut mapping.
+- Evidence-backed semantic token roles without guessing intent.
+- Responsive and motion capture with focused browser fixtures.
 
 ## Working against upstream projects
 
