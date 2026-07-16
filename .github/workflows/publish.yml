@@ -9,6 +9,7 @@ name: Publish
 # the exact GitHub commit that built it.
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -29,7 +30,7 @@ jobs:
 
       # Trusted publishing needs a recent npm (OIDC support landed in 11.5).
       - name: Upgrade npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
 
       - name: Install
         run: npm ci
