@@ -4,17 +4,22 @@ English | [Português (Brasil)](./README.pt-BR.md)
 
 [![npm version](https://img.shields.io/npm/v/tokenscout.svg)](https://www.npmjs.com/package/tokenscout)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./packages/core/package.json)
 
-Reduce a website's real, rendered styles to a clean design-token set: a
-perceptually-deduplicated color palette, a type scale, and a spacing scale,
-exported as a W3C DTCG `design-tokens.json`.
+TokenScout helps small web agencies turn an undocumented live client website
+into an evidence-backed redesign baseline, so they can scope and start
+rebuilding without guessing what the browser actually renders.
 
-Most design-token tooling starts from source CSS or a design file. tokenscout
-works on computed styles, the values a browser actually paints, so cascades,
-overrides, third-party widgets, and runtime theming are all already resolved.
+When source design files are missing, stale, or incomplete, manual discovery
+creates unsupported assumptions, missed requirements, and avoidable rework.
+TokenScout studies the rendered site and writes a reviewable website rebuild
+evidence pack: W3C DTCG tokens, assets, motion, icons, topology, interactions,
+screenshots, Design DNA, and CSS/Tailwind output.
 
-Two packages:
+It records what the browser presents. It does not claim to recover the original
+design intent, replace design judgment, or generate a complete design system.
+
+Three packages:
 
 - **`tokenscout`** (core), zero runtime dependencies. You give it style
   observations from a page (colors, font sizes, spacing) and it returns a
@@ -23,17 +28,22 @@ Two packages:
   implemented and tested.
 - **`@tokenscout/extract`**, which drives a headless browser (Playwright) to
   collect those observations from a live URL for you: computed styles at one or
-  more breakpoints, with optional same-origin crawling. Image-asset harvesting
-  and animation capture are still on the roadmap.
+  more breakpoints, optional same-origin crawling, assets, CSS motion, stack,
+  icons, topology, and the primary interaction model. `studySite` writes the
+  evidence and a versioned Design DNA brief to disk.
+- **`@tokenscout/transform`**, which renders a DTCG token document as CSS custom
+  properties or a Tailwind configuration without guessing semantic roles.
 
-So you can either supply observations yourself (your own crawler, or by hand) or
-let `@tokenscout/extract` read them off a live page. Design and status in
+You can supply observations yourself, extract a report from a live page, or
+write a complete study bundle for a redesign. Design and status in
 [ARCHITECTURE.md](./ARCHITECTURE.md) and [ROADMAP.md](./ROADMAP.md).
 
-## Why
+## Why agencies use it
 
+- **Scope from evidence.** Start a client rebuild from a reviewable baseline,
+  not a subjective walkthrough of an undocumented site.
 - **Computed, not source.** What ships to a user's screen is not what is in the
-  stylesheet. tokenscout reduces the resolved, painted values.
+  stylesheet. TokenScout reduces the resolved, painted values.
 - **Perceptual clustering.** `#3a7bd5`, `#3b7cd6`, and `rgb(58,123,213)` are
   three strings but one color. tokenscout clusters them in CIELAB by ΔE76, so a
   sprawling declared palette collapses to the handful of colors a site really
@@ -51,17 +61,41 @@ let `@tokenscout/extract` read them off a live page. Design and status in
 npm install tokenscout
 ```
 
-For live extraction, also install the extract package and a browser:
+For live extraction and a reusable study bundle, install the extract package
+and a browser:
 
 ```bash
 npm install @tokenscout/extract playwright
 npx playwright install chromium
 ```
 
+To turn DTCG tokens into implementation files:
+
+```bash
+npm install @tokenscout/transform
+```
+
 ESM, Node 20+. Playwright is a peer dependency of `@tokenscout/extract`, so the
 core stays dependency-free.
 
 ## Use
+
+### Study a live site
+
+```ts
+import { studySite } from "@tokenscout/extract";
+
+await studySite("https://example.com", {
+  outDir: "./tokenscout-study",
+  breakpoints: [1440, 768, 390],
+});
+```
+
+This writes `site-report.json`, `design-dna.json`, `design-dna.md`, and
+light/dark screenshot evidence. Design DNA separates measured observations,
+conservative inferences, explicit unknowns, and keep/adapt/improve/do-not-copy
+guidance. The contract is versioned and documented in
+[`docs/design-dna-v0.1.md`](./docs/design-dna-v0.1.md).
 
 ### From a live URL
 
@@ -95,6 +129,37 @@ report.animations; // CSS durations (ms), easings, @keyframes names
 report.stack; // detected frameworks with confidence
 ```
 
+### Live progress
+
+Long multi-page inspections can expose structured lifecycle updates without
+changing their final Promise result or writing to stdout:
+
+```ts
+const report = await inspectSite("https://example.com", {
+  breakpoints: [1440, 768, 390],
+  onProgress(event) {
+    const position =
+      event.current === undefined ? "" : ` ${event.current}/${event.total}`;
+    const viewport =
+      event.breakpoint === undefined ? "" : ` @ ${event.breakpoint}px`;
+    process.stderr.write(
+      `[tokenscout] ${event.phase}.${event.status}${viewport}${position} ${JSON.stringify(event.detail ?? {})}\n`,
+    );
+  },
+});
+```
+
+`extractSite`, `extractTokens`, `inspectSite`, and `captureSite` accept the same
+optional `onProgress` listener. Events report real phases, statuses, page and
+breakpoint counters, elapsed time, and compact result counts. Disabled
+collectors emit `skipped`; failures emit `failed` before the original error is
+re-thrown. Listener errors are ignored so progress presentation cannot abort a
+successful scan. Listeners are synchronous; returned promises are not awaited,
+although rejected thenables are observed to prevent unhandled rejections.
+
+`inspectSite` emits rendered-style viewport progress but does not take
+screenshots. Only `captureSite` emits the `screenshot` phase.
+
 To copy the site's images for a redesign, fetch the manifest to disk:
 
 ```ts
@@ -102,6 +167,19 @@ import { downloadAssets } from "@tokenscout/extract";
 
 await downloadAssets(report.assets, "./out/assets"); // writes files + manifest.json
 ```
+
+### Export to CSS or Tailwind
+
+```ts
+import { transform } from "@tokenscout/transform";
+
+const css = transform(report.tokens, "css-vars");
+const tailwind = transform(report.tokens, "tailwind");
+```
+
+The transform deliberately stops at raw token families. It does not invent
+semantic `background`, `primary`, or `border` aliases that the evidence cannot
+support yet.
 
 The individual collectors (`discoverAssets`, `extractAnimations`, `profilePage`,
 `discoverSitemapUrls`) are exported too, if you want to run them on your own
@@ -218,6 +296,9 @@ Full document: [`packages/core/examples/design-tokens.json`](./packages/core/exa
   off-grid spacing values a live site has accumulated versus its intended scale.
 - **Seed `design-tokens.json`.** Get a W3C DTCG starting point for Style
   Dictionary or any DTCG-aware tooling.
+- **Ground an AI-assisted rebuild.** Give an agent measured evidence, explicit
+  unknowns, and transfer boundaries instead of asking it to imitate a screenshot
+  from memory.
 - **Normalize scraped styles.** Turn raw computed-style dumps from your own
   crawler into a deduplicated, structured token set.
 
@@ -236,9 +317,9 @@ Honest about the edges, since they affect output:
 - **Motion tokens are durations only (in the DTCG `duration` group).** Easings
   and `@keyframes` names are reported on `inspectSite`'s `animations` field but
   are not yet emitted as DTCG tokens.
-- **Color input is hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, and CSS named
-  colors.** `oklch()`, `lab()`/`lch()`, `hwb()`, and `color()` are not parsed
-  yet and are dropped.
+- **Most common CSS Color 4 functions are parsed.** Hex, `rgb()`/`rgba()`,
+  `hsl()`/`hsla()`, named colors, `oklch()`, `oklab()`, `lab()`, `lch()`, and
+  `hwb()` are supported. The parameterized `color()` form is still dropped.
 - **Lengths are `px` and `rem` only.** `em`, `%`, `vw`, and keywords are dropped.
 - **Fully transparent paints (alpha 0) are dropped** from color tokens; alpha is
   otherwise not part of the cluster identity, so opaque and semi-transparent
@@ -263,8 +344,8 @@ Honest about the edges, since they affect output:
 
 ## Roadmap
 
-Two-package shape: a zero-dependency core (pure token math) and an extract
-package that drives a headless browser. Full detail in
+Three-package shape: a zero-dependency core, a Playwright extraction layer, and
+a small transform layer. Full detail in
 [ROADMAP.md](./ROADMAP.md); design in [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 **Core (`tokenscout`, zero deps):**
@@ -280,24 +361,31 @@ package that drives a headless browser. Full detail in
 
 **Extract (`@tokenscout/extract`, Playwright peer):**
 - [x] Live crawl + computed-style extraction at breakpoints
-- [ ] Image / asset harvesting (manifest + files, for redesign migration)
-- [ ] Animation capture: CSS `@keyframes`/transition tokens + Lottie download
-      + library detection + motion-reference video, up to runtime WAAPI/rAF
-      instrumentation of JS-driven motion (research tier)
+- [x] Image / asset harvesting and downloads
+- [x] CSS animation signals, stack, icons, topology, and interaction detection
+- [x] Versioned Design DNA study bundle with screenshot evidence
+- [~] JavaScript motion capture (opt-in research tier; rAF remains incomplete)
 - [ ] Responsive / multi-screen capture: configurable breakpoints, light/dark
       dual palette, and per-breakpoint token identity (currently flattened)
+
+**Transform (`@tokenscout/transform`):**
+- [x] CSS custom properties
+- [x] Tailwind configuration
+- [ ] Semantic aliases and `shadcn` export after role evidence exists
 
 Next focus is responsive multi-screen capture and refined motion capture —
 plan in [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-and-motion.md).
 
 **Release:**
-- [x] Publish core to npm (`0.1.x`), live: https://www.npmjs.com/package/tokenscout
+- [x] Core is live on npm; the registry currently trails GitHub
+- [ ] Publish the relaunch set: `tokenscout@0.5.1`,
+      `@tokenscout/extract@0.5.0`, and `@tokenscout/transform@0.1.0`
 
 ## Contributing
 
 Issues and PRs welcome, especially around color science, CSS value parsing,
-and token-scale heuristics. This is an open-core project; the synthesis and
-reporting layers on top of it are separate.
+token-scale heuristics, and evidence-based design transfer. The deterministic
+study and transform layers are MIT-licensed with the rest of the repository.
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the dev loop and the
 zero-runtime-dependency rule, and the [Code of Conduct](./CODE_OF_CONDUCT.md)

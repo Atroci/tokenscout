@@ -1,0 +1,46 @@
+// Zero-new-runtime-dep test suite using node:test. Run via tsx (dev dep).
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { assembleTokens } from "tokenscout/tokens";
+import type { PageExtract } from "tokenscout/schema";
+import { transform } from "../src/index.js";
+
+const pages: PageExtract[] = [
+  {
+    url: "https://example.com/",
+    breakpoint: 1280,
+    colors: [
+      { value: "#3a7bd5", role: "background-color", count: 40 },
+      { value: "#ffffff", role: "color", count: 30 },
+    ],
+    type: { sizes: ["16px", "32px"] },
+    spacing: { values: ["8px", "16px"] },
+  },
+];
+
+const tokens = assembleTokens(pages);
+
+test("transform: css-vars emits a :root block with one custom property per token", () => {
+  const out = transform(tokens, "css-vars");
+  assert.match(out, /^:root \{\n/);
+  assert.match(out, /\n\}\n$/);
+  // fontSize/spacing keys already carry their group name -> no doubling.
+  assert.match(out, /--font-size-1: 16px;/);
+  assert.match(out, /--font-size-2: 32px;/);
+  assert.match(out, /--spacing-1: 8px;/);
+  // color keys don't carry a "color-" prefix -> css-vars adds one.
+  assert.match(out, /--color-\S+: rgb\(58, 123, 213\);/);
+});
+
+test("transform: tailwind emits a theme.extend referencing the css-vars names", () => {
+  const out = transform(tokens, "tailwind");
+  assert.match(out, /^\/\*\* @type \{import\('tailwindcss'\)\.Config\} \*\/\n/);
+  assert.match(out, /module\.exports = \{/);
+  // Redundant group prefix stripped from the utility key: "font-size-1" -> "1".
+  assert.match(out, /"1": "var\(--font-size-1\)"/);
+  assert.match(out, /"var\(--color-\S+\)"/);
+});
+
+test("transform: rejects unknown formats", () => {
+  assert.throws(() => transform(tokens, "scss" as never), /unsupported format/);
+});

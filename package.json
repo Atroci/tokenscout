@@ -2,13 +2,13 @@
   "name": "tokenscout-workspace",
   "version": "0.0.0",
   "private": true,
-  "description": "Workspace root for tokenscout (core) and @tokenscout/extract. Not published.",
+  "description": "Turn undocumented live client websites into evidence-backed redesign baselines.",
   "type": "module",
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "npm run build -w tokenscout && npm run build -w @tokenscout/extract",
-    "typecheck": "npm run build -w tokenscout && npm run typecheck -w tokenscout && npm run typecheck -w @tokenscout/extract",
-    "test": "npm run build -w tokenscout && npm run test -w tokenscout && npm run test -w @tokenscout/extract",
+    "build": "npm run build -w tokenscout && npm run build -w @tokenscout/transform && npm run build -w @tokenscout/extract",
+    "typecheck": "npm run build -w tokenscout && npm run typecheck -w tokenscout && npm run typecheck -w @tokenscout/transform && npm run typecheck -w @tokenscout/extract",
+    "test": "npm run build -w tokenscout && npm run test -w tokenscout && npm run test -w @tokenscout/transform && npm run test -w @tokenscout/extract",
     "lint": "eslint .",
     "format": "prettier --write \"packages/*/{src,test,examples}/**/*.ts\"",
     "format:check": "prettier --check \"packages/*/{src,test,examples}/**/*.ts\""

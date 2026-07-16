@@ -1,6 +1,6 @@
 name: Publish
 
-# Publishes the `tokenscout` core package to npm when a GitHub Release is
+# Publishes the three tokenscout packages to npm when a GitHub Release is
 # published. Never auto-fires on push — you cut the release, this runs.
 #
 # Auth is npm Trusted Publishing (OIDC): no NPM_TOKEN secret. Configure the
@@ -101,4 +101,34 @@ jobs:
           fi
 
           echo "@tokenscout/extract@$want is NOT on the registry (npm view returned '${live:-<none>}') — this is a real failure."
+          exit "$code"
+
+      - name: Build + test transform
+        run: |
+          npm run build -w @tokenscout/transform
+          npm run test -w @tokenscout/transform
+
+      - name: Publish @tokenscout/transform with provenance
+        working-directory: packages/transform
+        run: |
+          set +e
+          npm publish --provenance --access public
+          code=$?
+          set -e
+
+          if [ "$code" -eq 0 ]; then
+            echo "npm publish exited cleanly."
+            exit 0
+          fi
+
+          echo "npm publish exited $code — cross-checking the registry before failing."
+          want=$(node -p "require('./package.json').version")
+          live=$(npm view "@tokenscout/transform@$want" version 2>/dev/null || true)
+
+          if [ "$live" = "$want" ]; then
+            echo "@tokenscout/transform@$want is live on the registry — treating as success."
+            exit 0
+          fi
+
+          echo "@tokenscout/transform@$want is NOT on the registry (npm view returned '${live:-<none>}') — this is a real failure."
           exit "$code"

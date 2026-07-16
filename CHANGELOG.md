@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Release target: `tokenscout` **0.5.1** · `@tokenscout/extract` **0.5.0** ·
+`@tokenscout/transform` **0.1.0**.
+
+### Added
+
+- `@tokenscout/extract`: `studySite()` writes a stable redesign-study bundle:
+  measured `site-report.json`, versioned `design-dna.json`, readable
+  `design-dna.md`, and optional light/dark screenshot evidence. Design DNA keeps
+  observed, inferred, and unknown claims separate, then classifies transfer
+  guidance as keep, adapt, improve, or do not copy.
+- `@tokenscout/extract`: optional structured `onProgress` lifecycle events for
+  `extractSite`, `extractTokens`, `inspectSite`, and `captureSite`. Events expose
+  truthful discovery, viewport, collector, token-reduction, and screenshot
+  milestones without changing Promise results or writing to stdout. Disabled
+  collectors emit `skipped`; listener errors never abort the underlying run.
+- New `@tokenscout/transform` package renders DTCG tokens as CSS custom
+  properties or a Tailwind configuration. Semantic role and `shadcn` mappings
+  remain intentionally unsupported until source evidence can justify them.
+- Package-specific READMEs so every npm package has an installable quick start.
+
+### Changed
+
+- Public positioning now leads with one buyer and job: small web agencies use
+  TokenScout to turn undocumented live client websites into evidence-backed
+  redesign baselines. Design-token extraction and Design DNA remain proof and
+  implementation details, not the headline promise.
+- Consolidated npm publishing into the GitHub Release-triggered Trusted
+  Publishing workflow and added the transform package. The obsolete tag-triggered
+  `NPM_TOKEN` workflow was removed.
+
 ## [0.5.0] — 2026-07-05
 
 `tokenscout` (core) **0.5.0** · `@tokenscout/extract` **0.4.0**.
@@ -271,7 +301,10 @@ First open-core release: the zero-dependency color layer, tested and CI-gated.
 - Project docs: `README`, `CONTRIBUTING`, `CODE_OF_CONDUCT`, `SECURITY`,
   `ROADMAP`, `ARCHITECTURE`, issue/PR templates.
 
-[Unreleased]: https://github.com/Atroci/tokenscout/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Atroci/tokenscout/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/Atroci/tokenscout/compare/v0.4.1...v0.5.0
+[0.4.1]: https://github.com/Atroci/tokenscout/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/Atroci/tokenscout/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Atroci/tokenscout/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Atroci/tokenscout/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Atroci/tokenscout/releases/tag/v0.1.0

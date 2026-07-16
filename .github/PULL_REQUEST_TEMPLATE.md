@@ -8,8 +8,7 @@
 
 ## Checklist
 
-- [ ] `npm run typecheck` passes
-- [ ] `npm run build` passes
-- [ ] No new runtime dependencies (`dependencies` in package.json unchanged)
+- [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass
+- [ ] Core still has zero runtime dependencies; Playwright remains a peer of extract
 - [ ] Updated `CHANGELOG.md` under `## [Unreleased]`
 - [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)

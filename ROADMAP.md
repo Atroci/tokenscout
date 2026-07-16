@@ -2,24 +2,27 @@
 
 ## The epic
 
-> **Point tokenscout at a live URL and get back a faithful, reusable design-token
-> set (palette, type scale, spacing scale, and motion) plus the site's image
-> assets, ready to seed a redesign.**
+> **Help small web agencies turn an undocumented live client website into an
+> evidence-backed redesign baseline for scoping and rebuilding without visual
+> guesswork.**
 
-Source-agnostic by design: tokenscout reads what the browser actually *paints*
+The delivered artifact is a reviewable website rebuild evidence pack.
+Source-agnostic by design: TokenScout reads what the browser actually *paints*
 (computed styles, rendered DOM, runtime motion) rather than the source CSS or a
 design file. It works on any stack: React, WordPress, hand-written HTML, or a
 site whose source you'll never see. The driving use case is redesigning an
-existing site for the same client. Capture the old site's real design language
-and assets so the new build starts from truth instead of guesswork.
+existing site for the same client. Capture the old site's rendered evidence and
+assets so the new build starts from a defensible baseline instead of guesswork.
 
 ## Shape
 
-Two packages, one invariant: the published core never depends on a browser.
+Three packages, one invariant: the published core never depends on a browser.
 
 - **`tokenscout`** (core): pure token math, zero runtime dependencies.
 - **`@tokenscout/extract`**: drives a headless browser (Playwright as a peer
   dependency) to produce the raw observations the core reduces.
+- **`@tokenscout/transform`**: renders DTCG tokens as CSS custom properties or a
+  Tailwind configuration without guessing semantic roles.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package split and data contract.
 
@@ -68,13 +71,16 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
       deduplicated asset manifest (`discoverAssets`, `buildAssetManifest`).
 - [x] Asset download: fetch the manifest entries to disk (`downloadAssets`) for
       the redesign-migration "copy the old site's images" workflow.
+- [x] Inline SVG icon harvesting, page topology, primary interaction detection,
+      text extraction, per-element style harvesting, and breakpoint layout diff
+      as composable collectors.
 - [ ] CSS custom-property recovery: read declared `--custom-properties` (not
       just resolved computed values), including dark-mode / theme-scope
       overrides — recovers a site's actual naming system, which clustering
       alone throws away.
-- [ ] Pseudo-state / interaction-state capture (`:hover`, `:focus-visible`,
-      `:active`, `:disabled`, `[aria-expanded]`, …) — a site's "feel" is often
-      encoded only in these states, invisible to a single static snapshot.
+- [~] Interaction-state capture and CSS diff ships as opt-in primitives for
+      scroll and click states. A complete `:hover`, `:focus-visible`, `:active`,
+      `:disabled`, and `[aria-expanded]` study is not wired into `inspectSite`.
 - [ ] Per-element geometry (selector, role, box `{width, height}`, nearest-
       neighbor distance) for interactive elements at a given breakpoint —
       needed for Fitts's-Law / touch-target auditing (WCAG 2.2 target-size).
@@ -128,7 +134,7 @@ increasing ambition:
       invisible (see above), spring/physics animations resolve with no numeric
       `duration` (recorded `null`, dropped), and only animated property *names*
       are kept, not from/to values. Fragile, per-site tuning expected; an
-      open-core differentiator, not a blocker for the rest.
+      optional differentiator, not a blocker for the rest.
 
 ### Phase 5: Responsive / multi-screen capture (`@tokenscout/extract`)
 Today extraction renders at two fixed CSS widths (`[1280, 375]`), a hard-coded
@@ -137,9 +143,9 @@ breakpoint into one token set**. `PageExtract.breakpoint` is plumbed through the
 seam but discarded in `assembleTokens`, so mobile-vs-desktop deltas dissolve and
 dark-mode palettes are never even painted. None of this is done yet:
 
-- [ ] Configurable breakpoint list incl. a tablet width (the array param exists;
-      true tablet/retina also needs per-screen `newContext({ deviceScaleFactor,
-      isMobile })` instead of one reused `newPage()`).
+- [x] Configurable viewport-width list, including tablet widths.
+- [ ] Real device profiles: per-screen `newContext({ deviceScaleFactor,
+      isMobile })` instead of one reused desktop page.
 - [ ] `prefers-color-scheme` dual-theme palette: `emulateMedia({ colorScheme })`
       light + dark passes so a site's dark palette is captured, not invisible.
 - [ ] `prefers-reduced-motion` pass for the motion tier.
@@ -153,19 +159,26 @@ dark-mode palettes are never even painted. None of this is done yet:
 - [ ] Device-pixel-ratio (retina) capture for asset/image fidelity.
 - [ ] Container-query (`@container`) awareness (entirely unaddressed today).
 
-### Phase 6: Release & distribution
-- [x] Publish `tokenscout` (core) to npm (`0.1.x`), live since v0.1.0
-- [ ] Publish `@tokenscout/extract` once Phase 3 is usable end-to-end
+### Phase 6: Evidence transfer and implementation output
+- [x] `studySite()` writes `site-report.json`, Design DNA JSON/Markdown, and
+      optional light/dark screenshot evidence.
+- [x] Design DNA separates observed, inferred, and unknown claims and classifies
+      transfer guidance as keep, adapt, improve, or do not copy.
+- [x] `@tokenscout/transform` exports CSS custom properties and Tailwind config.
+- [ ] Semantic role evidence before `shadcn` or opinionated component mappings.
+- [ ] Validate the experimental responsive-invariants contract against real
+      withheld-width behavior before promoting it into the default report.
+
+### Phase 7: Release & distribution
+- [x] Publish `tokenscout` (core) to npm; registry is currently at `0.3.0`
+- [ ] Publish the relaunch set: `tokenscout@0.5.1`,
+      `@tokenscout/extract@0.5.0`, and `@tokenscout/transform@0.1.0`
 - [ ] Submit to design-tooling lists (e.g. Awesome-Design-Tokens) once published
       and proven, not before (and never to digital-forensics lists; the name
       collision is a coincidence)
 
 ### Backlog (not yet a phase)
 Later-stage ideas, parked here instead of lost:
-- Design-token export (`@tokenscout/transform` or similar): render a token
-  document as a drop-in CSS-vars / Tailwind / shadcn file instead of raw
-  JSON. Built and reverted once already (scope cut back to core+extract);
-  revisit deliberately rather than re-adding piecemeal.
 - Component fingerprinting (recurring `button.primary` / `card.pricing` /
   `navbar.sticky`-style patterns, with their full token set per instance) —
   valuable, but needs source evidence (Phase 2) and per-element geometry
@@ -178,5 +191,5 @@ Later-stage ideas, parked here instead of lost:
 - Not a digital-forensics / DFIR tool (the name shares a word, nothing else).
 - The core will not gain runtime dependencies. Browser weight lives only in
   `@tokenscout/extract`, with Playwright as a peer the consumer installs.
-- The redesign *synthesis / brief-writing* layer (LLM narrative, pitch voice)
-  stays in the private parent pipeline. tokenscout is the open extraction core.
+- Design DNA remains deterministic and evidence-linked. LLM narrative and pitch
+  voice stay outside the published packages.

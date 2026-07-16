@@ -2,7 +2,7 @@
 // that tokenscout's core reducers consume. Playwright is a peer dependency, so
 // the consumer owns its version and installs the browser binaries.
 
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
 import { assembleTokens, type AssembleOptions } from "tokenscout/tokens";
 import type { DesignTokens, PageExtract } from "tokenscout/schema";
 import { discoverPages } from "./crawl.js";
@@ -13,13 +13,86 @@ import { profilePage, type StackProfile } from "./profile-stack.js";
 import { discoverSitemapUrls } from "./sitemap.js";
 import { extractSVGIcons, type SvgIconManifest } from "./harvest-icons.js";
 import { mapPageTopology, type PageTopology } from "./map-topology.js";
-import { detectInteractionModel, type InteractionModel } from "./detect-interactions.js";
+import {
+  detectInteractionModel,
+  type InteractionModel,
+} from "./detect-interactions.js";
+import {
+  emitProgress,
+  withProgressPhase,
+  type ProgressListener,
+} from "./progress.js";
 
 export interface ExtractOptions {
   /** Viewport widths to extract at. Defaults to [1280, 375]. */
   breakpoints?: number[];
   /** Max same-origin pages to crawl from the entry URL. Defaults to 1. */
   top?: number;
+  /** Optional structured lifecycle observer. Listener errors never abort extraction. */
+  onProgress?: ProgressListener;
+}
+
+async function extractPages(
+  page: Page,
+  urls: string[],
+  breakpoints: number[],
+  onProgress: ProgressListener | undefined,
+): Promise<PageExtract[]> {
+  const total = urls.length * breakpoints.length;
+  const extracts: PageExtract[] = [];
+  let current = 0;
+
+  for (const url of urls) {
+    for (const breakpoint of breakpoints) {
+      current += 1;
+      const extracted = await withProgressPhase(
+        onProgress,
+        { phase: "viewport", url, breakpoint, current, total },
+        () => extractPage(page, url, breakpoint),
+        (result) => ({
+          colors: result.colors.length,
+          typeSizes: result.type.sizes.length,
+          spacingValues: result.spacing.values.length,
+        }),
+      );
+      extracts.push(extracted);
+    }
+  }
+
+  return extracts;
+}
+
+async function extractSiteInternal(
+  target: string,
+  options: ExtractOptions,
+): Promise<PageExtract[]> {
+  const { breakpoints = [1280, 375], top = 1, onProgress } = options;
+  const browser = await withProgressPhase(
+    onProgress,
+    { phase: "browser", url: target },
+    () => chromium.launch(),
+  );
+
+  try {
+    const urls = await withProgressPhase(
+      onProgress,
+      {
+        phase: "discovery",
+        url: target,
+        detail: { method: top <= 1 ? "target" : "links" },
+      },
+      () => discoverPages(browser, target, top),
+      (result) => ({ pages: result.length }),
+    );
+    const page = await browser.newPage();
+    try {
+      return await extractPages(page, urls, breakpoints, onProgress);
+    } finally {
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
 }
 
 /**
@@ -31,25 +104,11 @@ export async function extractSite(
   target: string,
   options: ExtractOptions = {},
 ): Promise<PageExtract[]> {
-  const { breakpoints = [1280, 375], top = 1 } = options;
-  const browser = await chromium.launch();
-  try {
-    const urls = await discoverPages(browser, target, top);
-    const page = await browser.newPage();
-    const extracts: PageExtract[] = [];
-    try {
-      for (const url of urls) {
-        for (const breakpoint of breakpoints) {
-          extracts.push(await extractPage(page, url, breakpoint));
-        }
-      }
-    } finally {
-      await page.close();
-    }
-    return extracts;
-  } finally {
-    await browser.close();
-  }
+  return withProgressPhase(
+    options.onProgress,
+    { phase: "run", url: target, detail: { operation: "extract-site" } },
+    () => extractSiteInternal(target, options),
+  );
 }
 
 /** Convenience: extract a live URL straight to a DTCG token document. */
@@ -57,9 +116,27 @@ export async function extractTokens(
   target: string,
   options: ExtractOptions & AssembleOptions = {},
 ): Promise<DesignTokens> {
-  const { breakpoints, top, ...assembleOpts } = options;
-  const pages = await extractSite(target, { breakpoints, top });
-  return assembleTokens(pages, assembleOpts);
+  const { breakpoints, top, onProgress, ...assembleOpts } = options;
+  return withProgressPhase(
+    onProgress,
+    { phase: "run", url: target, detail: { operation: "extract-tokens" } },
+    async () => {
+      const pages = await extractSiteInternal(target, {
+        breakpoints,
+        top,
+        onProgress,
+      });
+      return withProgressPhase(
+        onProgress,
+        { phase: "tokens", url: target },
+        () => assembleTokens(pages, assembleOpts),
+        (tokens) => ({
+          groups: Object.keys(tokens).filter((key) => !key.startsWith("$"))
+            .length,
+        }),
+      );
+    },
+  );
 }
 
 export interface InspectOptions extends ExtractOptions {
@@ -137,74 +214,210 @@ export async function inspectSite(
     interaction = true,
     deltaE,
     rootPx,
+    onProgress,
   } = options;
 
-  const browser = await chromium.launch();
-  try {
-    let urls: string[];
-    if (sitemap) {
-      const found = await discoverSitemapUrls(target, { limit: top });
-      urls = found.length > 0 ? found : [target];
-    } else {
-      urls = await discoverPages(browser, target, top);
-    }
+  return withProgressPhase(
+    onProgress,
+    { phase: "run", url: target, detail: { operation: "inspect-site" } },
+    async () => {
+      const browser = await withProgressPhase(
+        onProgress,
+        { phase: "browser", url: target },
+        () => chromium.launch(),
+      );
 
-    const page = await browser.newPage();
-    try {
-      const pages: PageExtract[] = [];
-      for (const url of urls) {
-        for (const breakpoint of breakpoints) {
-          pages.push(await extractPage(page, url, breakpoint));
+      try {
+        let discoveryFallback = false;
+        const urls = await withProgressPhase(
+          onProgress,
+          {
+            phase: "discovery",
+            url: target,
+            detail: {
+              method: sitemap ? "sitemap" : top <= 1 ? "target" : "links",
+            },
+          },
+          async () => {
+            if (!sitemap) return discoverPages(browser, target, top);
+            const found = await discoverSitemapUrls(target, { limit: top });
+            if (found.length > 0) return found;
+            discoveryFallback = true;
+            return [target];
+          },
+          (result) => ({ pages: result.length, fallback: discoveryFallback }),
+        );
+
+        const page = await browser.newPage();
+        try {
+          const pages = await extractPages(page, urls, breakpoints, onProgress);
+
+          // Collect the extras once, from the entry page at its widest breakpoint.
+          await page.setViewportSize({
+            width: Math.max(...breakpoints),
+            height: 900,
+          });
+          await page.goto(target, { waitUntil: "load" });
+
+          let assetManifest: AssetManifest;
+          if (assets) {
+            assetManifest = await withProgressPhase(
+              onProgress,
+              { phase: "assets", url: target },
+              () => discoverAssets(page, target),
+              (result) => ({ assets: result.assets.length }),
+            );
+          } else {
+            assetManifest = { assets: [] };
+            emitProgress(onProgress, {
+              phase: "assets",
+              status: "skipped",
+              url: target,
+            });
+          }
+
+          let animationTokens: AnimationTokens;
+          if (animations) {
+            animationTokens = await withProgressPhase(
+              onProgress,
+              { phase: "animations", url: target },
+              () => extractAnimations(page),
+              (result) => ({
+                durations: result.durations.length,
+                easings: result.easings.length,
+                keyframes: result.keyframes.length,
+                reducedMotionGap: result.reducedMotion.gap,
+              }),
+            );
+          } else {
+            animationTokens = EMPTY_ANIMATIONS;
+            emitProgress(onProgress, {
+              phase: "animations",
+              status: "skipped",
+              url: target,
+            });
+          }
+
+          let stackProfile: StackProfile | null;
+          if (stack) {
+            stackProfile = await withProgressPhase(
+              onProgress,
+              { phase: "stack", url: target },
+              () => profilePage(page),
+              (result) => ({ frameworks: result.frameworks.length }),
+            );
+          } else {
+            stackProfile = null;
+            emitProgress(onProgress, {
+              phase: "stack",
+              status: "skipped",
+              url: target,
+            });
+          }
+
+          let iconManifest: SvgIconManifest;
+          if (icons) {
+            iconManifest = await withProgressPhase(
+              onProgress,
+              { phase: "icons", url: target },
+              () => extractSVGIcons(page),
+              (result) => ({ icons: result.icons.length }),
+            );
+          } else {
+            iconManifest = EMPTY_ICON_MANIFEST;
+            emitProgress(onProgress, {
+              phase: "icons",
+              status: "skipped",
+              url: target,
+            });
+          }
+
+          let topologyResult: PageTopology | null;
+          if (topology) {
+            topologyResult = await withProgressPhase(
+              onProgress,
+              { phase: "topology", url: target },
+              () => mapPageTopology(page),
+              (result) => ({
+                sections: result.count,
+                scrollSnap: result.hasScrollSnap,
+              }),
+            );
+          } else {
+            topologyResult = null;
+            emitProgress(onProgress, {
+              phase: "topology",
+              status: "skipped",
+              url: target,
+            });
+          }
+
+          let interactionResult: InteractionModel | null;
+          if (interaction) {
+            interactionResult = await withProgressPhase(
+              onProgress,
+              { phase: "interaction", url: target },
+              () => detectInteractionModel(page, "body"),
+              (result) => ({
+                interactionType: result.type,
+                confidence: result.confidence,
+              }),
+            );
+          } else {
+            interactionResult = null;
+            emitProgress(onProgress, {
+              phase: "interaction",
+              status: "skipped",
+              url: target,
+            });
+          }
+
+          const tokens = await withProgressPhase(
+            onProgress,
+            { phase: "tokens", url: target },
+            () =>
+              assembleTokens(pages, {
+                deltaE,
+                rootPx,
+                animations: { durations: animationTokens.durations },
+              }),
+            (result) => ({
+              groups: Object.keys(result).filter((key) => !key.startsWith("$"))
+                .length,
+            }),
+          );
+
+          return {
+            url: target,
+            pages,
+            tokens,
+            assets: assetManifest,
+            animations: animationTokens,
+            stack: stackProfile,
+            icons: iconManifest,
+            topology: topologyResult,
+            interaction: interactionResult,
+          };
+        } finally {
+          await page.close();
         }
+      } finally {
+        await browser.close();
       }
-
-      // Collect the extras once, from the entry page at its widest breakpoint.
-      await page.setViewportSize({
-        width: Math.max(...breakpoints),
-        height: 900,
-      });
-      await page.goto(target, { waitUntil: "load" });
-
-      const assetManifest = assets
-        ? await discoverAssets(page, target)
-        : { assets: [] };
-      const animationTokens = animations
-        ? await extractAnimations(page)
-        : EMPTY_ANIMATIONS;
-      const stackProfile = stack ? await profilePage(page) : null;
-      const iconManifest = icons !== false ? await extractSVGIcons(page) : EMPTY_ICON_MANIFEST;
-      const topologyResult = topology !== false ? await mapPageTopology(page) : null;
-      const interactionResult =
-        interaction !== false ? await detectInteractionModel(page, "body") : null;
-
-      const tokens = assembleTokens(pages, {
-        deltaE,
-        rootPx,
-        animations: { durations: animationTokens.durations },
-      });
-
-      return {
-        url: target,
-        pages,
-        tokens,
-        assets: assetManifest,
-        animations: animationTokens,
-        stack: stackProfile,
-        icons: iconManifest,
-        topology: topologyResult,
-        interaction: interactionResult,
-      };
-    } finally {
-      await page.close();
-    }
-  } finally {
-    await browser.close();
-  }
+    },
+  );
 }
 
 export { discoverPages } from "./crawl.js";
 export { extractPage } from "./extract-page.js";
 export { harvest, type RawObservations } from "./harvest.js";
+export type {
+  ProgressPhase,
+  ProgressStatus,
+  ProgressDetail,
+  ProgressEvent,
+  ProgressListener,
+} from "./progress.js";
 
 // Asset harvesting (image/background/favicon/og-image/video-poster manifest).
 export {
@@ -382,3 +595,19 @@ export {
   type DiffBreakpointsOptions,
 } from "./diff-breakpoints.js";
 // --- end gap-H ---
+
+// Stable study artifact: measured evidence -> transferable design DNA.
+export {
+  DESIGN_DNA_VERSION,
+  buildDesignDNA,
+  renderDesignDNAMarkdown,
+  studySite,
+  type DesignDNA,
+  type DesignDNAConfidence,
+  type DesignDNAEvidence,
+  type DesignDNAFinding,
+  type DesignDNAGuidance,
+  type BuildDesignDNAOptions,
+  type StudySiteOptions,
+  type StudySiteResult,
+} from "./design-dna.js";
