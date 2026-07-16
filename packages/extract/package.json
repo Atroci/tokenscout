@@ -1,6 +1,6 @@
 {
   "name": "@tokenscout/extract",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Turn an undocumented live website into an evidence-backed redesign baseline for scoping and rebuilding.",
   "type": "module",
   "types": "./dist/index.d.ts",
@@ -41,7 +41,7 @@
     "directory": "packages/extract"
   },
   "dependencies": {
-    "tokenscout": "^0.5.0"
+    "tokenscout": "^0.5.1"
   },
   "peerDependencies": {
     "playwright": ">=1.40"

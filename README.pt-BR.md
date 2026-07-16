@@ -404,8 +404,8 @@ refinada — plano em
 - [x] O core está no npm; o registry atualmente está atrás do GitHub
 - [x] O skill público para agentes está versionado neste repositório
 - [ ] Instalar/indexar o skill no skills.sh após publicar os pacotes npm com escopo
-- [ ] Publicar o conjunto de relaunch: `tokenscout@0.5.1`,
-      `@tokenscout/extract@0.5.0` e `@tokenscout/transform@0.1.0`
+- [ ] Publicar o conjunto unificado do relançamento: `tokenscout@0.5.1`,
+      `@tokenscout/extract@0.5.1` e `@tokenscout/transform@0.5.1`
 
 ## Contribuindo
 

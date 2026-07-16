@@ -406,8 +406,8 @@ plan in [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-
 - [x] Core is live on npm; the registry currently trails GitHub
 - [x] Public agent skill is versioned in this repository
 - [ ] Install/index the skill on skills.sh after the scoped npm packages ship
-- [ ] Publish the relaunch set: `tokenscout@0.5.1`,
-      `@tokenscout/extract@0.5.0`, and `@tokenscout/transform@0.1.0`
+- [ ] Publish the unified relaunch set: `tokenscout@0.5.1`,
+      `@tokenscout/extract@0.5.1`, and `@tokenscout/transform@0.5.1`
 
 ## Contributing
 
