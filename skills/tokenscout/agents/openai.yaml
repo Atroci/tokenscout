@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenScout"
+  short_description: "Extract live-site design evidence"
+  default_prompt: "Use $tokenscout to study a live website and produce an evidence-backed redesign baseline."

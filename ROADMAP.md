@@ -171,8 +171,11 @@ dark-mode palettes are never even painted. None of this is done yet:
 
 ### Phase 7: Release & distribution
 - [x] Publish `tokenscout` (core) to npm; registry is currently at `0.3.0`
+- [x] Version a public, agent-agnostic TokenScout skill in this repository
 - [ ] Publish the relaunch set: `tokenscout@0.5.1`,
       `@tokenscout/extract@0.5.0`, and `@tokenscout/transform@0.1.0`
+- [ ] Install the repository skill through the `skills` CLI so skills.sh can
+      index it after the runtime packages are available
 - [ ] Submit to design-tooling lists (e.g. Awesome-Design-Tokens) once published
       and proven, not before (and never to digital-forensics lists; the name
       collision is a coincidence)

@@ -26,6 +26,10 @@ Release target: `tokenscout` **0.5.1** · `@tokenscout/extract` **0.5.0** ·
   properties or a Tailwind configuration. Semantic role and `shadcn` mappings
   remain intentionally unsupported until source evidence can justify them.
 - Package-specific READMEs so every npm package has an installable quick start.
+- A public, cross-agent `tokenscout` skill for live-site study, DTCG extraction,
+  and evidence-preserving CSS/Tailwind export. The repository copy is canonical
+  and replaces the earlier machine-local workflow that referenced an
+  unpublished MCP package and the wrong `fontSize` report key.
 
 ### Changed
 
@@ -36,6 +40,8 @@ Release target: `tokenscout` **0.5.1** · `@tokenscout/extract` **0.5.0** ·
 - Consolidated npm publishing into the GitHub Release-triggered Trusted
   Publishing workflow and added the transform package. The obsolete tag-triggered
   `NPM_TOKEN` workflow was removed.
+- Documented the current npm distribution boundary and deferred skills.sh
+  indexing until the two scoped packages have been published.
 
 ## [0.5.0] — 2026-07-05
 

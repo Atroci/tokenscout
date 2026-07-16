@@ -78,6 +78,32 @@ npm install @tokenscout/transform
 ESM, Node 20+. Playwright is a peer dependency of `@tokenscout/extract`, so the
 core stays dependency-free.
 
+The relaunch versions are prepared in this repository, but distribution is not
+complete yet: npm currently has `tokenscout@0.3.0`; the scoped extract and
+transform packages still await their first publication. Until Phase 7 is
+complete, use the workspace checkout for the full three-package workflow.
+
+## Agent skill
+
+The repository includes a cross-agent [`tokenscout` skill](./skills/tokenscout/SKILL.md)
+for URL-to-study, DTCG, CSS-variable, and Tailwind workflows. Install it directly
+from GitHub with the `skills` CLI:
+
+```bash
+npx skills add Atroci/tokenscout
+```
+
+Then ask your agent, for example:
+
+```text
+Use $tokenscout to study https://example.com and produce an evidence-backed redesign baseline.
+```
+
+The skill orchestrates the npm packages; it does not bundle Chromium or package
+code. External extraction therefore requires the relaunch packages to be live
+on npm. The public skill source is canonical; do not maintain a separate MCP or
+command implementation.
+
 ## Use
 
 ### Study a live site
@@ -378,6 +404,8 @@ plan in [docs/next-steps-responsive-and-motion.md](./docs/next-steps-responsive-
 
 **Release:**
 - [x] Core is live on npm; the registry currently trails GitHub
+- [x] Public agent skill is versioned in this repository
+- [ ] Install/index the skill on skills.sh after the scoped npm packages ship
 - [ ] Publish the relaunch set: `tokenscout@0.5.1`,
       `@tokenscout/extract@0.5.0`, and `@tokenscout/transform@0.1.0`
 
