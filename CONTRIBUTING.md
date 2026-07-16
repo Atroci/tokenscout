@@ -26,6 +26,12 @@ npm run typecheck
 npm test
 ```
 
+The public agent skill lives in [`skills/tokenscout`](./skills/tokenscout).
+Keep `SKILL.md` agent-agnostic, limited to capabilities that exist in this
+repository, and free of machine-local paths or unpublished package claims.
+Keep its frontmatter to `name` and `description`, and update
+`agents/openai.yaml` whenever the public invocation or promise changes.
+
 ## Pull request process
 
 1. Fork and branch from `main`.

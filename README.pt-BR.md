@@ -81,6 +81,32 @@ npm install @tokenscout/transform
 ESM, Node 20+. O Playwright é uma peer dependency do `@tokenscout/extract`, então
 o core continua sem dependências.
 
+As versões do relançamento estão prontas neste repositório, mas a distribuição
+ainda não terminou: o npm tem `tokenscout@0.3.0`; os pacotes com escopo de
+extração e transformação ainda aguardam a primeira publicação. Até concluir a
+Fase 7, use o checkout do workspace para o fluxo completo de três pacotes.
+
+## Skill para agentes
+
+O repositório inclui um [`tokenscout` skill](./skills/tokenscout/SKILL.md)
+compatível com agentes para fluxos de URL para estudo, DTCG, variáveis CSS e
+Tailwind. Instale diretamente do GitHub com o CLI `skills`:
+
+```bash
+npx skills add Atroci/tokenscout
+```
+
+Depois peça ao agente, por exemplo:
+
+```text
+Use $tokenscout para estudar https://example.com e produzir uma base de redesign apoiada em evidências.
+```
+
+O skill orquestra os pacotes npm; ele não inclui Chromium nem o código dos
+pacotes. A extração externa depende, portanto, da publicação dos pacotes do
+relançamento no npm. O skill público é a fonte canônica; não mantenha uma
+implementação separada como MCP ou comando.
+
 ## Uso
 
 ### Estudar um site no ar
@@ -376,6 +402,8 @@ refinada — plano em
 
 **Release:**
 - [x] O core está no npm; o registry atualmente está atrás do GitHub
+- [x] O skill público para agentes está versionado neste repositório
+- [ ] Instalar/indexar o skill no skills.sh após publicar os pacotes npm com escopo
 - [ ] Publicar o conjunto de relaunch: `tokenscout@0.5.1`,
       `@tokenscout/extract@0.5.0` e `@tokenscout/transform@0.1.0`
 
