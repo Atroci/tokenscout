@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Unified release target: `tokenscout` **0.5.1** · `@tokenscout/extract`
-**0.5.1** · `@tokenscout/transform` **0.5.1**.
+Unified release target: `tokenscout` **0.6.0** · `@tokenscout/extract`
+**0.6.0** · `@tokenscout/transform` **0.6.0**. Minor bump: the ΔE2000 +
+leader-clustering change alters cluster output on near-neutral and
+gradient-heavy palettes.
 
 ### Added
 
@@ -59,8 +61,9 @@ Unified release target: `tokenscout` **0.5.1** · `@tokenscout/extract`
   `NPM_TOKEN` workflow was removed.
 - Documented the current npm distribution boundary and deferred skills.sh
   indexing until the two scoped packages have been published.
-- Unified all three public package versions at `0.5.1` and aligned their
-  internal core dependency range to `^0.5.1`.
+- Unified all three public package versions at `0.5.1`, then bumped to
+  `0.6.0` for the clustering behavior change; internal core dependency range
+  aligned to `^0.6.0`.
 
 ## [0.5.0] — 2026-07-05
 

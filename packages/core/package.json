@@ -1,6 +1,6 @@
 {
   "name": "tokenscout",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Reduce rendered website observations into the token layer of an evidence-backed redesign baseline.",
   "type": "module",
   "types": "./dist/index.d.ts",
