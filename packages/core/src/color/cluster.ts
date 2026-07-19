@@ -1,21 +1,23 @@
-// Perceptual color clustering: single-linkage union-find over ΔE76.
+// Perceptual color clustering: count-ordered nearest-leader over ΔE2000.
 //
 // Groups near-duplicate colors that are syntactically distinct but
 // perceptually identical (e.g. #3a7bd5, #3b7cd6, rgb(58,123,213)). The
 // canonical per cluster is the highest-count member.
 //
-// Caveat: single-linkage chains transitively. If A~B and B~C are each within
-// the threshold, A, B and C land in one cluster even when ΔE76(A, C) exceeds
-// it. For near-continuous gradients a cluster's perceptual spread is therefore
-// not bounded by `threshold`. Use a smaller threshold if that matters.
+// Colors are visited by count descending; each joins the nearest existing
+// leader within `threshold` of that leader's Lab, or founds a new cluster.
+// Every member is therefore within `threshold` of its canonical — the
+// unbounded transitive chaining of the earlier single-linkage pass cannot
+// happen. Order-dependence is the deliberate trade: high-count colors anchor
+// clusters, tails attach to them.
 
-import { rgbToLab, deltaE76, roundLab, type Lab, type Rgb } from "./lab.js";
+import { rgbToLab, deltaE2000, roundLab, type Lab, type Rgb } from "./lab.js";
 
 /**
- * ΔE76 just-noticeable-difference threshold for sRGB content.
- * PLAN names ΔE2000 ≤ 2; ΔE76 ≤ 2.5 is the rough sRGB equivalent (CIE TR 116).
+ * ΔE2000 just-noticeable-difference threshold.
+ * PLAN names ΔE2000 ≤ 2; deltas below ~2 are imperceptible to most observers.
  */
-export const DEFAULT_DELTA_E = 2.5;
+export const DEFAULT_DELTA_E = 2.0;
 
 export interface ColorInput {
   /** Original CSS string, kept verbatim for reporting. */
@@ -26,6 +28,8 @@ export interface ColorInput {
   count?: number;
   /** CSS property this color was painted from, e.g. "color", "background-color". */
   role?: string;
+  /** Page (URL) the observation came from; feeds the cluster's pageCount. */
+  page?: string;
 }
 
 export interface Cluster {
@@ -35,6 +39,12 @@ export interface Cluster {
   members: string[];
   /** Summed count across all members. */
   totalCount: number;
+  /**
+   * Distinct pages (ColorInput.page) the cluster was observed on. Breadth
+   * signal: separates site-wide chrome (high) from one-page accents (1).
+   * 0 when no input carried page info.
+   */
+  pageCount: number;
   /** Sorted, de-duplicated CSS properties (roles) across the cluster's members. */
   cssProperties: string[];
   /** Lab of the canonical member, rounded to 2dp. */
@@ -43,65 +53,50 @@ export interface Cluster {
   rgb: Rgb;
 }
 
-class UnionFind {
-  private parent: number[];
-
-  constructor(n: number) {
-    this.parent = Array.from({ length: n }, (_, i) => i);
-  }
-
-  find(x: number): number {
-    while (this.parent[x] !== x) {
-      this.parent[x] = this.parent[this.parent[x]];
-      x = this.parent[x];
-    }
-    return x;
-  }
-
-  union(x: number, y: number): void {
-    const rx = this.find(x);
-    const ry = this.find(y);
-    if (rx !== ry) this.parent[rx] = ry;
-  }
-}
-
 /**
- * Cluster colors by perceptual similarity. Result is sorted by totalCount
- * descending. O(n²) pairwise, which is fine for the tens-to-low-hundreds of
- * distinct colors a real stylesheet yields.
+ * Cluster colors by perceptual similarity (ΔE2000). Result is sorted by
+ * totalCount descending. O(n·k) for k clusters, fine for the tens-to-low-
+ * hundreds of distinct colors a real stylesheet yields.
  */
 export function clusterColors(
   colors: ColorInput[],
   threshold: number = DEFAULT_DELTA_E,
 ): Cluster[] {
-  const n = colors.length;
-  const labs: Lab[] = colors.map((c) => rgbToLab(c.rgb));
-  const uf = new UnionFind(n);
-
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      if (deltaE76(labs[i], labs[j]) <= threshold) uf.union(i, j);
-    }
-  }
-
-  const groups = new Map<number, number[]>();
-  for (let i = 0; i < n; i++) {
-    const root = uf.find(i);
-    const group = groups.get(root);
-    if (group) group.push(i);
-    else groups.set(root, [i]);
-  }
-
-  const clusters: Cluster[] = [];
-  for (const idx of groups.values()) {
-    const members = idx.map((i) => colors[i]);
-    const canonical = members.reduce((a, b) =>
-      (b.count ?? 0) > (a.count ?? 0) ? b : a,
+  // Count desc, then value asc: deterministic leaders regardless of input order.
+  const ordered = colors
+    .map((c) => ({ input: c, lab: rgbToLab(c.rgb) }))
+    .sort(
+      (a, b) =>
+        (b.input.count ?? 0) - (a.input.count ?? 0) ||
+        (a.input.value < b.input.value ? -1 : a.input.value > b.input.value ? 1 : 0),
     );
-    clusters.push({
+
+  const groups: { lab: Lab; members: ColorInput[] }[] = [];
+  for (const { input, lab } of ordered) {
+    let best: (typeof groups)[number] | undefined;
+    let bestD = Infinity;
+    for (const g of groups) {
+      const d = deltaE2000(lab, g.lab);
+      if (d <= threshold && d < bestD) {
+        best = g;
+        bestD = d;
+      }
+    }
+    if (best) best.members.push(input);
+    else groups.push({ lab, members: [input] });
+  }
+
+  const clusters: Cluster[] = groups.map(({ members }) => {
+    // First member is the leader: highest count, and the anchor `threshold`
+    // was measured against.
+    const canonical = members[0];
+    return {
       canonical: canonical.value,
       members: [...new Set(members.map((m) => m.value))].sort(),
       totalCount: members.reduce((s, m) => s + (m.count ?? 0), 0),
+      pageCount: new Set(
+        members.map((m) => m.page).filter((p): p is string => p !== undefined),
+      ).size,
       cssProperties: [
         ...new Set(
           members
@@ -111,8 +106,8 @@ export function clusterColors(
       ].sort(),
       lab: roundLab(rgbToLab(canonical.rgb)),
       rgb: canonical.rgb,
-    });
-  }
+    };
+  });
 
   clusters.sort((a, b) => b.totalCount - a.totalCount);
   return clusters;

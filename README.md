@@ -45,7 +45,7 @@ write a complete study bundle for a redesign. Design and status in
 - **Computed, not source.** What ships to a user's screen is not what is in the
   stylesheet. TokenScout reduces the resolved, painted values.
 - **Perceptual clustering.** `#3a7bd5`, `#3b7cd6`, and `rgb(58,123,213)` are
-  three strings but one color. tokenscout clusters them in CIELAB by ΔE76, so a
+  three strings but one color. tokenscout clusters them in CIELAB by ΔE2000, so a
   sprawling declared palette collapses to the handful of colors a site really
   uses (the example below: 9 declared to 4 real).
 - **Stable, name-hinted token ids.** Color tokens are keyed by a content hash
@@ -53,7 +53,8 @@ write a complete study bundle for a redesign. Design and status in
   `cornflowerblue-17rhtps`), so ids stay put across runs and a token diff
   reflects real palette change, not list churn.
 - **Zero runtime dependencies.** The color math is ~120 lines of pure
-  TypeScript (sRGB→Lab, ΔE76, single-linkage union-find). No native deps.
+  TypeScript (sRGB→Lab, ΔE2000, count-ordered nearest-leader clustering —
+  cluster spread stays bounded by the threshold). No native deps.
 
 ## Install
 
@@ -267,11 +268,11 @@ const colors = ["#3a7bd5", "#3b7cd6", "rgb(58, 123, 213)", "#e23744"]
   })
   .filter((c) => c !== null);
 
-const clusters = clusterColors(colors); // ΔE76 ≤ 2.5 by default
+const clusters = clusterColors(colors); // ΔE2000 ≤ 2.0 by default
 // 2 clusters: one blue (3 members, canonical "#3a7bd5"), one red.
 ```
 
-Lower-level building blocks (`rgbToLab`, `deltaE76`) are exported too.
+Lower-level building blocks (`rgbToLab`, `deltaE76`, `deltaE2000`) are exported too.
 
 ## Results
 
@@ -375,7 +376,7 @@ a small transform layer. Full detail in
 [ROADMAP.md](./ROADMAP.md); design in [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 **Core (`tokenscout`, zero deps):**
-- [x] Color: parse, sRGB→Lab, ΔE76, perceptual clustering
+- [x] Color: parse, sRGB→Lab, ΔE2000, perceptual clustering
 - [x] Tests + CI
 - [x] Type scale reducer
 - [x] Spacing scale reducer

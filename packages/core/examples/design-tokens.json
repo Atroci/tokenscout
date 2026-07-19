@@ -14,6 +14,7 @@
       "$extensions": {
         "com.tokenscout.css-authored-as": "#ffffff",
         "com.tokenscout.usage-count": 97,
+        "com.tokenscout.page-count": 1,
         "com.tokenscout.css-properties": [
           "background-color",
           "color"
@@ -39,6 +40,7 @@
       "$extensions": {
         "com.tokenscout.css-authored-as": "#111827",
         "com.tokenscout.usage-count": 61,
+        "com.tokenscout.page-count": 1,
         "com.tokenscout.css-properties": [
           "color"
         ],
@@ -62,6 +64,7 @@
       "$extensions": {
         "com.tokenscout.css-authored-as": "#3a7bd5",
         "com.tokenscout.usage-count": 50,
+        "com.tokenscout.page-count": 1,
         "com.tokenscout.css-properties": [
           "background-color",
           "border-color",
@@ -90,6 +93,7 @@
       "$extensions": {
         "com.tokenscout.css-authored-as": "#e23744",
         "com.tokenscout.usage-count": 16,
+        "com.tokenscout.page-count": 1,
         "com.tokenscout.css-properties": [
           "background-color",
           "color"
@@ -105,7 +109,72 @@
       "com.tokenscout.analyzable": 9,
       "com.tokenscout.unanalyzable": 0,
       "com.tokenscout.distinct": 4,
-      "com.tokenscout.sprawl-ratio": 2.25
+      "com.tokenscout.sprawl-ratio": 2.25,
+      "com.tokenscout.contrast-pairs": [
+        {
+          "background": "#ffffff",
+          "text": "#111827",
+          "ratio": 17.74,
+          "wcag": {
+            "normalText": "pass",
+            "largeText": "pass"
+          }
+        },
+        {
+          "background": "#ffffff",
+          "text": "#3a7bd5",
+          "ratio": 4.22,
+          "wcag": {
+            "normalText": "fail",
+            "largeText": "pass"
+          }
+        },
+        {
+          "background": "#3a7bd5",
+          "text": "#ffffff",
+          "ratio": 4.22,
+          "wcag": {
+            "normalText": "fail",
+            "largeText": "pass"
+          }
+        },
+        {
+          "background": "#3a7bd5",
+          "text": "#111827",
+          "ratio": 4.2,
+          "wcag": {
+            "normalText": "fail",
+            "largeText": "pass"
+          }
+        },
+        {
+          "background": "#e23744",
+          "text": "#ffffff",
+          "ratio": 4.32,
+          "wcag": {
+            "normalText": "fail",
+            "largeText": "pass"
+          }
+        },
+        {
+          "background": "#e23744",
+          "text": "#111827",
+          "ratio": 4.11,
+          "wcag": {
+            "normalText": "fail",
+            "largeText": "pass"
+          }
+        },
+        {
+          "background": "#e23744",
+          "text": "#3a7bd5",
+          "ratio": 1.02,
+          "wcag": {
+            "normalText": "fail",
+            "largeText": "fail"
+          }
+        }
+      ]
     }
   },
   "fontSize": {

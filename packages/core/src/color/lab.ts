@@ -1,4 +1,4 @@
-// sRGB → CIE Lab (D65) and ΔE76. Pure TypeScript, zero dependencies.
+// sRGB → CIE Lab (D65), ΔE76 and ΔE2000. Pure TypeScript, zero dependencies.
 //
 // The math is inlined intentionally: the formulas are short enough to maintain
 // directly, and inlining keeps the package free of runtime dependencies.
@@ -58,4 +58,63 @@ export function deltaE76(a: Lab, b: Lab): number {
   const da = a[1] - b[1];
   const db = a[2] - b[2];
   return Math.sqrt(dL * dL + da * da + db * db);
+}
+
+const DEG = Math.PI / 180;
+const POW25_7 = 25 ** 7;
+
+/**
+ * CIEDE2000 color difference (Sharma, Wu & Dalal 2005). Weights lightness,
+ * chroma and hue differences per the eye's actual sensitivity, so near-neutral
+ * grays and saturated hues cluster on the same numeric threshold — ΔE76's
+ * known weakness. kL = kC = kH = 1.
+ */
+export function deltaE2000(lab1: Lab, lab2: Lab): number {
+  const [L1, a1, b1] = lab1;
+  const [L2, a2, b2] = lab2;
+
+  const cBar = (Math.hypot(a1, b1) + Math.hypot(a2, b2)) / 2;
+  const g = 0.5 * (1 - Math.sqrt(cBar ** 7 / (cBar ** 7 + POW25_7)));
+  const a1p = (1 + g) * a1;
+  const a2p = (1 + g) * a2;
+  const c1p = Math.hypot(a1p, b1);
+  const c2p = Math.hypot(a2p, b2);
+  const h1p = c1p === 0 ? 0 : (Math.atan2(b1, a1p) / DEG + 360) % 360;
+  const h2p = c2p === 0 ? 0 : (Math.atan2(b2, a2p) / DEG + 360) % 360;
+
+  const dLp = L2 - L1;
+  const dCp = c2p - c1p;
+  let dhp = 0;
+  if (c1p * c2p !== 0) {
+    dhp = h2p - h1p;
+    if (dhp > 180) dhp -= 360;
+    else if (dhp < -180) dhp += 360;
+  }
+  const dHp = 2 * Math.sqrt(c1p * c2p) * Math.sin((dhp * DEG) / 2);
+
+  const lBar = (L1 + L2) / 2;
+  const cBarP = (c1p + c2p) / 2;
+  let hBar = h1p + h2p;
+  if (c1p * c2p !== 0) {
+    if (Math.abs(h1p - h2p) > 180) hBar += hBar < 360 ? 360 : -360;
+    hBar /= 2;
+  }
+
+  const t =
+    1 -
+    0.17 * Math.cos((hBar - 30) * DEG) +
+    0.24 * Math.cos(2 * hBar * DEG) +
+    0.32 * Math.cos((3 * hBar + 6) * DEG) -
+    0.2 * Math.cos((4 * hBar - 63) * DEG);
+  const dTheta = 30 * Math.exp(-(((hBar - 275) / 25) ** 2));
+  const rC = 2 * Math.sqrt(cBarP ** 7 / (cBarP ** 7 + POW25_7));
+  const sL = 1 + (0.015 * (lBar - 50) ** 2) / Math.sqrt(20 + (lBar - 50) ** 2);
+  const sC = 1 + 0.045 * cBarP;
+  const sH = 1 + 0.015 * cBarP * t;
+  const rT = -Math.sin(2 * dTheta * DEG) * rC;
+
+  const l = dLp / sL;
+  const c = dCp / sC;
+  const h = dHp / sH;
+  return Math.sqrt(l * l + c * c + h * h + rT * c * h);
 }

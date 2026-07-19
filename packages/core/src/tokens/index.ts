@@ -30,7 +30,7 @@ import type {
 } from "../schema.js";
 
 export interface AssembleOptions {
-  /** ΔE76 clustering threshold for colors. Defaults to DEFAULT_DELTA_E. */
+  /** ΔE2000 clustering threshold for colors. Defaults to DEFAULT_DELTA_E. */
   deltaE?: number;
   /** Root font-size in px for rem→px conversion. Defaults to 16. */
   rootPx?: number;
@@ -117,6 +117,7 @@ function buildColorGroup(
           rgb: parsed.rgb,
           count: obs.count,
           role: obs.role,
+          page: page.url,
         });
       } else {
         unanalyzableValues.add(obs.value);
@@ -144,6 +145,7 @@ function buildColorGroup(
       $extensions: {
         "com.tokenscout.css-authored-as": cluster.canonical,
         "com.tokenscout.usage-count": cluster.totalCount,
+        "com.tokenscout.page-count": cluster.pageCount,
         "com.tokenscout.css-properties": cluster.cssProperties,
         "com.tokenscout.member-count": cluster.members.length,
         "com.tokenscout.members": cluster.members,

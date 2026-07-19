@@ -30,6 +30,8 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package split and data contract
 
 ### Phase 1: Color core (v0.1.0, shipped; extended v0.3.0)
 Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-dep.
+- [x] ΔE2000 metric + bounded-spread leader clustering (replaced ΔE76
+      single-linkage; PLAN's ΔE2000 ≤ 2 target)
 - [x] `hsl()` + named-color parsing (alongside hex / `rgb()`)
 - [x] Color-group sprawl metrics (analyzable / unanalyzable / distinct counts +
       sprawl-ratio) to flag undisciplined palettes

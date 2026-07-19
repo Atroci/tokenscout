@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   rgbToLab,
   deltaE76,
+  deltaE2000,
   parseColor,
   clusterColors,
   nearestNamedColor,
@@ -271,7 +272,31 @@ test("clusterColors: canonical is highest-count member", () => {
 });
 
 test("DEFAULT_DELTA_E is the documented JND threshold", () => {
-  assert.equal(DEFAULT_DELTA_E, 2.5);
+  assert.equal(DEFAULT_DELTA_E, 2.0);
+});
+
+test("deltaE2000: identity is zero, symmetric", () => {
+  const a = rgbToLab([0.2, 0.4, 0.6]);
+  const b = rgbToLab([0.2, 0.4, 0.61]);
+  assert.equal(deltaE2000(a, a), 0);
+  close(deltaE2000(a, b), deltaE2000(b, a), 1e-9);
+  assert.ok(deltaE2000(a, b) > 0);
+});
+
+test("deltaE2000: Sharma 2005 reference pairs", () => {
+  // Published CIEDE2000 test data (Sharma, Wu & Dalal 2005, table 1).
+  close(
+    deltaE2000([50, 2.6772, -79.7751], [50, 0, -82.7485]),
+    2.0425,
+    1e-4,
+  );
+  close(deltaE2000([50, 2.5, 0], [73, 25, -18]), 27.1492, 1e-4);
+  close(deltaE2000([50, 2.5, 0], [50, 3.2972, 0]), 1.0, 1e-4);
+});
+
+test("deltaE2000: black vs white is ~100 (anchors the threshold scale)", () => {
+  const d = deltaE2000(rgbToLab([0, 0, 0]), rgbToLab([1, 1, 1]));
+  close(d, 100, 0.5);
 });
 
 test("deltaE76: black vs white is ~100 (anchors the threshold scale)", () => {
@@ -281,22 +306,53 @@ test("deltaE76: black vs white is ~100 (anchors the threshold scale)", () => {
   close(d, 100, 0.5);
 });
 
-test("clusterColors: single-linkage chains transitively (documented caveat)", () => {
+test("clusterColors: chains do not merge — spread is bounded by threshold", () => {
   // Three grays where each adjacent pair is within threshold but the endpoints
-  // are not: dE(A,B) and dE(B,C) <= 2.5, dE(A,C) > 2.5. Single-linkage still
-  // merges all three. Locks the documented behavior against a future linkage swap.
+  // are not. The old single-linkage pass merged all three transitively;
+  // leader clustering must split the far endpoint into its own cluster.
   const chain = [
-    { value: "A", rgb: [0.5, 0.5, 0.5] as const, count: 1 },
-    { value: "B", rgb: [0.515, 0.515, 0.515] as const, count: 1 },
+    { value: "A", rgb: [0.5, 0.5, 0.5] as const, count: 3 },
+    { value: "B", rgb: [0.515, 0.515, 0.515] as const, count: 2 },
     { value: "C", rgb: [0.53, 0.53, 0.53] as const, count: 1 },
   ];
-  const ab = deltaE76(rgbToLab(chain[0].rgb), rgbToLab(chain[1].rgb));
-  const bc = deltaE76(rgbToLab(chain[1].rgb), rgbToLab(chain[2].rgb));
-  const ac = deltaE76(rgbToLab(chain[0].rgb), rgbToLab(chain[2].rgb));
-  assert.ok(ab <= 2.5 && bc <= 2.5, "adjacent pairs must be in threshold");
-  assert.ok(ac > 2.5, "endpoints must be out of threshold");
+  const labs = chain.map((c) => rgbToLab(c.rgb));
+  const ab = deltaE2000(labs[0], labs[1]);
+  const bc = deltaE2000(labs[1], labs[2]);
+  const ac = deltaE2000(labs[0], labs[2]);
+  assert.ok(ab <= DEFAULT_DELTA_E && bc <= DEFAULT_DELTA_E, "adjacent in threshold");
+  assert.ok(ac > DEFAULT_DELTA_E, "endpoints out of threshold");
 
   const clusters = clusterColors(chain);
+  assert.equal(clusters.length, 2);
+  // Every member sits within threshold of its cluster's canonical.
+  for (const cluster of clusters) {
+    for (const member of cluster.members) {
+      const input = chain.find((c) => c.value === member)!;
+      assert.ok(
+        deltaE2000(rgbToLab(input.rgb), rgbToLab(clusterCanonicalRgb(cluster, chain))) <=
+          DEFAULT_DELTA_E,
+        `${member} within threshold of ${cluster.canonical}`,
+      );
+    }
+  }
+
+  function clusterCanonicalRgb(
+    cluster: { canonical: string },
+    inputs: readonly { value: string; rgb: readonly [number, number, number] }[],
+  ) {
+    return inputs.find((c) => c.value === cluster.canonical)!.rgb;
+  }
+});
+
+test("clusterColors: pageCount counts distinct pages, 0 without page info", () => {
+  const clusters = clusterColors([
+    { value: "#111111", rgb: [0.066, 0.066, 0.066], count: 5, page: "/" },
+    { value: "#111112", rgb: [0.067, 0.066, 0.066], count: 3, page: "/about" },
+    { value: "#111111", rgb: [0.066, 0.066, 0.066], count: 2, page: "/" },
+  ]);
   assert.equal(clusters.length, 1);
-  assert.equal(clusters[0].members.length, 3);
+  assert.equal(clusters[0].pageCount, 2);
+
+  const noPage = clusterColors([{ value: "x", rgb: [0.5, 0.5, 0.5], count: 1 }]);
+  assert.equal(noPage[0].pageCount, 0);
 });
