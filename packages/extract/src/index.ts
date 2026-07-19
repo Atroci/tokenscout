@@ -154,7 +154,7 @@ export interface InspectOptions extends ExtractOptions {
   topology?: boolean;
   /** Detect the page-level interaction driver (scroll/click/hover/time). Defaults to true. */
   interaction?: boolean;
-  /** ΔE76 clustering threshold passed to assembleTokens. */
+  /** ΔE2000 clustering threshold passed to assembleTokens. */
   deltaE?: number;
   /** Root font-size in px for rem to px conversion. */
   rootPx?: number;

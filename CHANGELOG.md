@@ -12,6 +12,13 @@ Unified release target: `tokenscout` **0.5.1** · `@tokenscout/extract`
 
 ### Added
 
+- `tokenscout/color`: `deltaE2000` — CIEDE2000 color difference (Sharma, Wu &
+  Dalal 2005), validated against the published reference pairs. `deltaE76`
+  remains exported.
+- `Cluster.pageCount` + per-token `$extensions["com.tokenscout.page-count"]`:
+  distinct pages a color cluster was observed on. Separates site-wide chrome
+  (nav/footer colors on every crawled page inflate `usage-count`) from
+  one-page accents without changing the ranking.
 - `@tokenscout/extract`: `studySite()` writes a stable redesign-study bundle:
   measured `site-report.json`, versioned `design-dna.json`, readable
   `design-dna.md`, and optional light/dark screenshot evidence. Design DNA keeps
@@ -33,6 +40,16 @@ Unified release target: `tokenscout` **0.5.1** · `@tokenscout/extract`
 
 ### Changed
 
+- **Color clustering metric and linkage.** `clusterColors` now measures ΔE2000
+  (was ΔE76) and groups by count-ordered nearest-leader assignment (was
+  single-linkage union-find). `DEFAULT_DELTA_E` is `2.0` (was `2.5`), matching
+  the PLAN's ΔE2000 ≤ 2 target. Every cluster member is now within the
+  threshold of its canonical color — the documented single-linkage transitive-
+  chaining caveat (unbounded cluster spread on near-continuous gradients) is
+  gone. Cluster output can differ from 0.5.x on near-neutral and gradient-heavy
+  palettes; the quickstart example reduces identically.
+- Regenerated `packages/core/examples/design-tokens.json`, which had drifted
+  from the quickstart's real output (it predated `contrast-pairs`).
 - Public positioning now leads with one buyer and job: small web agencies use
   TokenScout to turn undocumented live client websites into evidence-backed
   redesign baselines. Design-token extraction and Design DNA remain proof and

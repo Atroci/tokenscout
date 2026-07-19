@@ -1,4 +1,4 @@
-export { rgbToLab, deltaE76, type Lab, type Rgb } from "./lab.js";
+export { rgbToLab, deltaE76, deltaE2000, type Lab, type Rgb } from "./lab.js";
 export { parseColor, type ParsedColor } from "./parse.js";
 export {
   clusterColors,
