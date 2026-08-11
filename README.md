@@ -36,7 +36,8 @@ Three packages:
 
 You can supply observations yourself, extract a report from a live page, or
 write a complete study bundle for a redesign. Design and status in
-[ARCHITECTURE.md](./ARCHITECTURE.md) and [ROADMAP.md](./ROADMAP.md).
+[ARCHITECTURE.md](./ARCHITECTURE.md) and [ROADMAP.md](./ROADMAP.md); operating
+principles and validation gates in [docs/METHODOLOGY.md](./docs/METHODOLOGY.md).
 
 ## Why agencies use it
 
