@@ -11,6 +11,7 @@ import { discoverAssets, type AssetManifest } from "./harvest-assets.js";
 import { extractAnimations, type AnimationTokens } from "./animations.js";
 import { profilePage, type StackProfile } from "./profile-stack.js";
 import { discoverSitemapUrls } from "./sitemap.js";
+import { assertPublicHttpUrl } from "./url-safety.js";
 import { extractSVGIcons, type SvgIconManifest } from "./harvest-icons.js";
 import { mapPageTopology, type PageTopology } from "./map-topology.js";
 import {
@@ -257,6 +258,7 @@ export async function inspectSite(
             width: Math.max(...breakpoints),
             height: 900,
           });
+          await assertPublicHttpUrl(target);
           await page.goto(target, { waitUntil: "load" });
 
           let assetManifest: AssetManifest;
@@ -484,6 +486,18 @@ export {
   discoverSitemapUrls,
   type DiscoverSitemapOptions,
 } from "./sitemap.js";
+
+// SSRF guard shared by every network-reaching call site (page navigation,
+// sitemap fetches, asset downloads): blocks loopback, private, link-local
+// (incl. cloud metadata), and other non-public targets before they are
+// requested. Exported so a consumer building a custom extraction path on top
+// of the collectors below can apply the same guard to its own fetch/goto calls.
+export {
+  assertPublicHttpUrl,
+  isBlockedAddress,
+  UnsafeUrlError,
+  type LookupFn,
+} from "./url-safety.js";
 
 // Experimental (research tier): JS-animation-library detection. `Confidence` is
 // re-used from profile-stack above, so it is not re-exported here.

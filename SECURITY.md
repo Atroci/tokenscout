@@ -53,6 +53,40 @@ classes include:
 - unsafe URL handling, path traversal, or unintended file writes in the
   extractor, asset downloader, screenshot capture, or study bundle.
 
+## Network safety in `@tokenscout/extract`
+
+`@tokenscout/extract` navigates and fetches URLs it did not choose: the target
+the caller supplied, same-origin links discovered on that page, sitemap
+`<loc>` entries (not origin-constrained), and asset URLs harvested from the
+rendered DOM. Every one of those is untrusted input, so every network-reaching
+call site — page navigation, sitemap fetches, and asset downloads — validates
+its target through `assertPublicHttpUrl()` (`packages/extract/src/url-safety.ts`)
+before the request goes out:
+
+- **Blocked:** loopback, private (RFC 1918), link-local (including the
+  169.254.169.254 cloud-metadata address), carrier-grade NAT (RFC 6598), and
+  other non-public IPv4/IPv6 ranges — checked against every address the
+  hostname resolves to, and against IPv4-mapped IPv6 by its embedded address,
+  not just the literal hostname string.
+- **Passed through unchecked:** non-http(s) schemes (`file:`, used by this
+  repository's own local-fixture tests), since they never reach the network.
+- **Failure mode:** a blocked sitemap or asset URL fails soft (the existing
+  fetch-error contract for those functions — see `sitemap.ts` and
+  `download-assets.ts`); a blocked page-navigation target throws
+  `UnsafeUrlError`.
+
+**Known limitation.** The check runs once, before the request (DNS resolved
+and validated at call time). It does not intercept a mid-navigation redirect
+inside Chromium, and it does not defend against DNS rebinding between this
+check and the actual TCP connection. Closing that gap fully would need
+request-level interception (Playwright `page.route()` / a validating proxy) on
+every hop, not just the initial target — tracked as a ROADMAP follow-up, not
+implemented here. Treat this guard as a real but partial mitigation, the same
+scope as the `assertPublicUrl` check it is modeled on in
+[ion-design/ditto.site](https://github.com/ion-design/ditto.site)'s hosted
+clone endpoint (`packages/api/src/ssrf.ts` there): validated at the point of
+request, not proxied end-to-end.
+
 ## Supply chain
 
 - Zero runtime dependencies is an intentional guarantee of the core package.

@@ -7,6 +7,7 @@ import type { Page } from "playwright";
 import type { PageExtract } from "tokenscout/schema";
 import { harvest, type RawObservations } from "./harvest.js";
 import { scrollAndSettle } from "./capture.js";
+import { assertPublicHttpUrl } from "./url-safety.js";
 
 /** Runs in the browser. Walks the rendered DOM and reads computed styles. */
 function collectObservations(): RawObservations {
@@ -68,6 +69,7 @@ export async function extractPage(
   url: string,
   breakpoint: number,
 ): Promise<PageExtract> {
+  await assertPublicHttpUrl(url);
   await page.setViewportSize({ width: breakpoint, height: 900 });
   await page.goto(url, { waitUntil: "load" });
   // Reveal-on-scroll / lazy hero and carousel content stays unrendered (or

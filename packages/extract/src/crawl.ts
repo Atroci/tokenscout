@@ -3,6 +3,7 @@
 // crawling (sitemap.xml, recursion, ranking) is a later increment.
 
 import type { Browser } from "playwright";
+import { assertPublicHttpUrl } from "./url-safety.js";
 
 /** Discover up to `top` same-origin pages, starting from `entry`. */
 export async function discoverPages(
@@ -12,6 +13,7 @@ export async function discoverPages(
 ): Promise<string[]> {
   if (top <= 1) return [entry];
 
+  await assertPublicHttpUrl(entry);
   const page = await browser.newPage();
   try {
     await page.goto(entry, { waitUntil: "load" });

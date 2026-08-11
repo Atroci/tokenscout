@@ -6,6 +6,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { AssetManifest, AssetRef } from "./harvest-assets.js";
+import { assertPublicHttpUrl } from "./url-safety.js";
 
 /** One successfully downloaded asset, plus where it landed and its size. */
 export interface DownloadedAsset extends AssetRef {
@@ -91,6 +92,7 @@ export async function downloadAssets(
 
   for (const asset of manifest.assets) {
     try {
+      await assertPublicHttpUrl(asset.url);
       const res = await fetchImpl(asset.url);
       if (!res.ok) {
         failed.push({ url: asset.url, error: `HTTP ${res.status}` });
