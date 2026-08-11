@@ -131,6 +131,11 @@ Three jobs (`.github/workflows/ci.yml`):
   builds core then extract, and runs the smoke extraction against a local
   fixture. Slower, and isolated so it never slows the core's hot path.
 
+These map onto the gates listed in
+[docs/METHODOLOGY.md](./docs/METHODOLOGY.md#validation-gates), which also
+covers the determinism check and the review-standard questions a PR should
+answer.
+
 ## Open decisions
 
 - Whether Tier-3 animation instrumentation graduates from research into a

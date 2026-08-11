@@ -50,6 +50,18 @@ gradient-heavy palettes.
 - New `@tokenscout/transform` package renders DTCG tokens as CSS custom
   properties or a Tailwind configuration. Semantic role and `shadcn` mappings
   remain intentionally unsupported until source evidence can justify them.
+- `docs/METHODOLOGY.md`: operating principles (observed-evidence-first,
+  deterministic reduction, untrusted input, measurement not judgment), a
+  validation-gates table mapped to what CI actually runs, and a four-question
+  review standard for changes to a reducer, collector, or exported contract.
+  Cross-linked from `README.md` and `ARCHITECTURE.md` rather than duplicated.
+  Inspired by the same-named doc in ion-design/ditto.site, written fresh for
+  this repository's own principles and gates.
+- `packages/core/test/determinism.test.ts`: locks in the determinism claim
+  `ROADMAP.md` already made (`Stable, name-hinted hashed token ids`) as a
+  regression gate — `assembleTokens` now has an explicit test asserting
+  byte-identical, page-order-independent output for the same input, not just
+  the existing per-primitive coverage.
 - Package-specific READMEs so every npm package has an installable quick start.
 - A public, cross-agent `tokenscout` skill for live-site study, DTCG extraction,
   and evidence-preserving CSS/Tailwind export. The repository copy is canonical
