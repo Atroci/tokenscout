@@ -76,6 +76,11 @@ Parse · sRGB→Lab · ΔE76 · perceptual clustering. Tested, CI-gated, zero-de
 - [x] Inline SVG icon harvesting, page topology, primary interaction detection,
       text extraction, per-element style harvesting, and breakpoint layout diff
       as composable collectors.
+- [x] SSRF guard (`assertPublicHttpUrl`): every page navigation, sitemap
+      fetch, and asset download validates its target's resolved address
+      before the request. See SECURITY.md for scope and the known
+      redirect-time (TOCTOU) limitation — full request-level interception
+      across redirects is not yet implemented.
 - [ ] CSS custom-property recovery: read declared `--custom-properties` (not
       just resolved computed values), including dark-mode / theme-scope
       overrides — recovers a site's actual naming system, which clustering

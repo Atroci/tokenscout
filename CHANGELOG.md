@@ -31,6 +31,22 @@ gradient-heavy palettes.
   truthful discovery, viewport, collector, token-reduction, and screenshot
   milestones without changing Promise results or writing to stdout. Disabled
   collectors emit `skipped`; listener errors never abort the underlying run.
+- `@tokenscout/extract`: `assertPublicHttpUrl` / `isBlockedAddress` SSRF guard,
+  applied before every network-reaching call — page navigation (`crawl.ts`,
+  `extract-page.ts`, the `inspectSite` extras pass), sitemap fetches, and asset
+  downloads. Loopback, private (RFC 1918), link-local (including the
+  169.254.169.254 cloud-metadata address), carrier-grade-NAT, and other
+  non-public IPv4/IPv6 targets are rejected as `UnsafeUrlError`, including
+  IPv4-mapped IPv6 and DNS results, not just the literal hostname. A blocked
+  sitemap or asset URL fails soft, matching those functions' existing
+  fetch-error contract; a blocked navigation target throws. Non-http(s)
+  schemes (`file:`, used by this repo's own fixture tests) pass through
+  unchecked. Closes the gap between the `tokenscout` skill's documented
+  "validate http(s) only" guardrail and what the library itself enforced.
+  Modeled on ion-design/ditto.site's `assertPublicUrl` guard for its hosted
+  clone endpoint, reimplemented for this package's several independent
+  network call sites; see SECURITY.md for the threat model and known
+  redirect-time (TOCTOU) limitation.
 - New `@tokenscout/transform` package renders DTCG tokens as CSS custom
   properties or a Tailwind configuration. Semantic role and `shadcn` mappings
   remain intentionally unsupported until source evidence can justify them.

@@ -2,6 +2,13 @@
 // fetch (Node 20+). The deterministic parse lives in parseSitemap() so it is
 // unit-testable without any network; discoverSitemapUrls() is the thin fetch
 // glue that the pure function does not depend on.
+//
+// <loc> entries are not constrained to the sitemap's own origin, so every
+// fetch (root and child sitemaps) is SSRF-guarded via assertPublicHttpUrl():
+// a compromised or malicious sitemap cannot point this process's fetch() at
+// an internal address. A blocked URL fails soft, like any other fetch error.
+
+import { assertPublicHttpUrl } from "./url-safety.js";
 
 /** Match every <loc>...</loc>, tolerant of namespaces and surrounding whitespace. */
 const LOC_RE =
@@ -112,12 +119,15 @@ export async function discoverSitemapUrls(
   return applyLimit(pages, limit);
 }
 
-/** GET `url` and return its body text, or null on any error or non-200. */
+/** GET `url` and return its body text, or null on any error, non-200, or
+ * SSRF-unsafe target (a blocked address fails soft here, same as any other
+ * fetch error, so a hostile sitemap only degrades discovery, never crashes it). */
 async function fetchText(
   url: string,
   fetchImpl: typeof fetch,
 ): Promise<string | null> {
   try {
+    await assertPublicHttpUrl(url);
     const res = await fetchImpl(url);
     if (!res.ok) return null;
     return await res.text();
