@@ -1,3 +1,5 @@
+// Pure tests for the onProgress lifecycle helpers (emitProgress,
+// withProgressPhase). No browser. Run via tsx.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
