@@ -1,3 +1,9 @@
+// Design DNA: buildDesignDNA/renderDesignDNAMarkdown/DESIGN_DNA_VERSION are
+// pure and browser-free, but studySite() drives real Chromium against the
+// local fixture to write the full study bundle end to end. Imports the built
+// output for the same reason as every other *.smoke.test.ts here: Playwright
+// serializes the page-side collector with Function.toString(), and tsx/esbuild
+// would inject a `__name` helper undefined in the browser. Requires a build.
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";

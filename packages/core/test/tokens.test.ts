@@ -3,29 +3,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { assembleTokens } from "../src/tokens/index.js";
 import type { PageExtract } from "../src/schema.js";
+import { simplePages } from "./fixtures.js";
 
-// One hand-made multi-breakpoint fixture exercising all three groups.
-const pages: PageExtract[] = [
-  {
-    url: "https://example.com/",
-    breakpoint: 1280,
-    colors: [
-      { value: "#3a7bd5", role: "background-color", count: 40 },
-      { value: "#3b7cd6", role: "color", count: 5 },
-      { value: "rgb(58, 123, 213)", role: "border-color", count: 2 },
-      { value: "#e23744", role: "color", count: 12 },
-    ],
-    type: { sizes: ["16px", "24px", "1.5rem"] },
-    spacing: { values: ["8px", "16px", "1.5rem"] },
-  },
-  {
-    url: "https://example.com/",
-    breakpoint: 375,
-    colors: [{ value: "#e23744", role: "background-color", count: 3 }],
-    type: { sizes: ["14px", "16px"] },
-    spacing: { values: ["8px", "0.5rem"] },
-  },
-];
+// Assembly shape, not reduction behavior, is what this file cares about —
+// see fixtures.ts for why this fixture and determinism.test.ts's differ.
+const pages = simplePages();
 
 test("assembleTokens: emits a DTCG group per domain", () => {
   const tokens = assembleTokens(pages);
