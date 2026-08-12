@@ -63,6 +63,8 @@ gradient-heavy palettes.
   byte-identical, page-order-independent output for the same input, not just
   the existing per-primitive coverage.
 - Package-specific READMEs so every npm package has an installable quick start.
+- README / README.pt-BR: CI status badge linking to the `ci.yml` workflow run,
+  alongside the existing npm version / license / zero-dependencies badges.
 - A public, cross-agent `tokenscout` skill for live-site study, DTCG extraction,
   and evidence-preserving CSS/Tailwind export. The repository copy is canonical
   and replaces the earlier machine-local workflow that referenced an

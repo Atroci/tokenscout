@@ -2,6 +2,7 @@ English | [Português (Brasil)](./README.pt-BR.md)
 
 # tokenscout
 
+[![CI](https://github.com/Atroci/tokenscout/actions/workflows/ci.yml/badge.svg)](https://github.com/Atroci/tokenscout/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/tokenscout.svg)](https://www.npmjs.com/package/tokenscout)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./packages/core/package.json)
