@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><title>crawl fixture A</title></head>
+  <body>
+    <h1>Page A</h1>
+    <a href="./crawl-b.html">Page B (same origin)</a>
+    <a href="./crawl-c.html">Page C (same origin)</a>
+    <a href="./crawl-a.html">Self (dedup check)</a>
+    <a href="https://example.com/">External (cross-origin, must be filtered)</a>
+  </body>
+</html>

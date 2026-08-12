@@ -48,8 +48,16 @@ export interface RawInteractionSignals {
 export function detectInteraction(
   signals: RawInteractionSignals,
 ): InteractionModel {
-  // a. animation-timeline → scroll-driven CSS animation
+  // a. animation-timeline → scroll-driven CSS animation. "auto" is the CSS
+  // initial value (use the default document timeline, i.e. time-driven, not
+  // scroll-driven) — getComputedStyle() reports it for every element that
+  // never set animation-timeline at all, so it must be excluded alongside
+  // "none"/"" or this branch fires "high confidence" on every element on
+  // every page, regardless of its actual CSS. Verified against real Chromium
+  // (148.0.7778.96): a plain <header> with no animation-timeline rule reports
+  // "auto", not "none".
   if (
+    signals.animationTimeline !== "auto" &&
     signals.animationTimeline !== "none" &&
     signals.animationTimeline !== ""
   ) {
@@ -115,21 +123,18 @@ export function detectInteraction(
 
 /** Runs in the browser. Gathers interaction signals for the given selector. */
 function collectInteractionSignals(selector: string): RawInteractionSignals {
-  const el =
-    document.querySelector(selector) ?? document.body;
+  const el = document.querySelector(selector) ?? document.body;
   const cs = getComputedStyle(el);
 
   const scrollSnapType = cs.scrollSnapType ?? "none";
-  const animationTimeline =
-    cs.getPropertyValue("animation-timeline") || "none";
+  const animationTimeline = cs.getPropertyValue("animation-timeline") || "none";
   const position = cs.position;
 
   // IntersectionObserver heuristic: count elements carrying common
   // scroll-reveal markers (data-aos, data-animate, [data-inview], [class*="animate"]).
-  const ioProxy =
-    document.querySelectorAll(
-      "[data-aos], [data-animate], [data-inview], [class*='animate']",
-    ).length;
+  const ioProxy = document.querySelectorAll(
+    "[data-aos], [data-animate], [data-inview], [class*='animate']",
+  ).length;
 
   const transition = cs.transition;
   const hasTransition =

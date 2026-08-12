@@ -69,6 +69,45 @@ gradient-heavy palettes.
   and evidence-preserving CSS/Tailwind export. The repository copy is canonical
   and replaces the earlier machine-local workflow that referenced an
   unpublished MCP package and the wrong `fontSize` report key.
+- Test coverage for every previously-untested exported function, closing an
+  audit gap (every public export in all three packages now has at least one
+  direct test referencing it by name, not just indirect exercise through a
+  composed pipeline): `tokenscout/color`'s `NAMED_COLORS` and `hashString`;
+  `@tokenscout/transform`'s `renderCssVars` and `renderTailwindConfig` called
+  directly, not only through the `transform()` dispatcher; and, in
+  `@tokenscout/extract`, direct smoke coverage (new
+  `packages/extract/test/collectors.smoke.test.ts`, one shared browser across
+  ~19 tests) for the `Page`-taking wrapper half of every collector —
+  `extractPage`, `discoverPages` (including its real multi-page, same-origin
+  crawl path, previously never exercised because the existing smoke tests all
+  use `top: 1`), `extractAnimations`, `extractContent`, `harvestStyles`,
+  `mapPageTopology`, `profilePage`, `extractSVGIcons`, `discoverAssets`,
+  `diffBreakpoints`, `snapshotElementStyles`, `captureScrollState`,
+  `captureClickState`, and `detectInteractionModel` — plus the remaining pure
+  exports, `classifyProperties`, `DESIGN_DNA_VERSION`, and `MOTION_GLOBALS`.
+  New fixtures: `collectors.html` (sticky nav, native `<details>` disclosure,
+  scroll-triggered state, inline SVG, Next.js markers) and `crawl-a/b/c.html`
+  (a real 3-page same-origin link graph plus one cross-origin link, to prove
+  discovery, capping, and origin-filtering together, not just each in
+  isolation).
+
+### Fixed
+
+- `detectInteraction`'s `animation-timeline` check treated any value other
+  than `"none"`/`""` as a scroll-driven signal, but a real browser's default
+  computed value for an element that never set `animation-timeline` at all is
+  `"auto"` (the CSS initial value), not `"none"` — verified against real
+  Chromium (148.0.7778.96). Every element on every page was therefore
+  misclassified `scroll-driven, high confidence, CSS animation-timeline`
+  regardless of its actual CSS. `"auto"` is now excluded alongside `"none"`.
+  Caught by the first direct smoke test ever written against
+  `detectInteractionModel` with a real browser: the pure reducer's own tests
+  never fed it `"auto"`, only the hand-picked `"none"` the author assumed was
+  the unset default.
+- `diffBreakpoints` re-navigates (`page.goto`) once per requested breakpoint
+  but was missed when the SSRF guard was wired into every other navigation
+  and fetch call site; it now calls `assertPublicHttpUrl` on `url` before the
+  breakpoint loop, same as every other navigation in `@tokenscout/extract`.
 
 ### Changed
 

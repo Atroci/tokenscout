@@ -9,7 +9,9 @@ import {
   clusterColors,
   nearestNamedColor,
   stableColorId,
+  hashString,
   DEFAULT_DELTA_E,
+  NAMED_COLORS,
 } from "../src/index.js";
 
 const close = (a: number, b: number, eps = 0.5) =>
@@ -285,11 +287,7 @@ test("deltaE2000: identity is zero, symmetric", () => {
 
 test("deltaE2000: Sharma 2005 reference pairs", () => {
   // Published CIEDE2000 test data (Sharma, Wu & Dalal 2005, table 1).
-  close(
-    deltaE2000([50, 2.6772, -79.7751], [50, 0, -82.7485]),
-    2.0425,
-    1e-4,
-  );
+  close(deltaE2000([50, 2.6772, -79.7751], [50, 0, -82.7485]), 2.0425, 1e-4);
   close(deltaE2000([50, 2.5, 0], [73, 25, -18]), 27.1492, 1e-4);
   close(deltaE2000([50, 2.5, 0], [50, 3.2972, 0]), 1.0, 1e-4);
 });
@@ -319,7 +317,10 @@ test("clusterColors: chains do not merge — spread is bounded by threshold", ()
   const ab = deltaE2000(labs[0], labs[1]);
   const bc = deltaE2000(labs[1], labs[2]);
   const ac = deltaE2000(labs[0], labs[2]);
-  assert.ok(ab <= DEFAULT_DELTA_E && bc <= DEFAULT_DELTA_E, "adjacent in threshold");
+  assert.ok(
+    ab <= DEFAULT_DELTA_E && bc <= DEFAULT_DELTA_E,
+    "adjacent in threshold",
+  );
   assert.ok(ac > DEFAULT_DELTA_E, "endpoints out of threshold");
 
   const clusters = clusterColors(chain);
@@ -329,8 +330,10 @@ test("clusterColors: chains do not merge — spread is bounded by threshold", ()
     for (const member of cluster.members) {
       const input = chain.find((c) => c.value === member)!;
       assert.ok(
-        deltaE2000(rgbToLab(input.rgb), rgbToLab(clusterCanonicalRgb(cluster, chain))) <=
-          DEFAULT_DELTA_E,
+        deltaE2000(
+          rgbToLab(input.rgb),
+          rgbToLab(clusterCanonicalRgb(cluster, chain)),
+        ) <= DEFAULT_DELTA_E,
         `${member} within threshold of ${cluster.canonical}`,
       );
     }
@@ -338,7 +341,10 @@ test("clusterColors: chains do not merge — spread is bounded by threshold", ()
 
   function clusterCanonicalRgb(
     cluster: { canonical: string },
-    inputs: readonly { value: string; rgb: readonly [number, number, number] }[],
+    inputs: readonly {
+      value: string;
+      rgb: readonly [number, number, number];
+    }[],
   ) {
     return inputs.find((c) => c.value === cluster.canonical)!.rgb;
   }
@@ -353,6 +359,52 @@ test("clusterColors: pageCount counts distinct pages, 0 without page info", () =
   assert.equal(clusters.length, 1);
   assert.equal(clusters[0].pageCount, 2);
 
-  const noPage = clusterColors([{ value: "x", rgb: [0.5, 0.5, 0.5], count: 1 }]);
+  const noPage = clusterColors([
+    { value: "x", rgb: [0.5, 0.5, 0.5], count: 1 },
+  ]);
   assert.equal(noPage[0].pageCount, 0);
+});
+
+test("NAMED_COLORS: every value is a valid lowercase 6- or 8-digit hex string", () => {
+  const hex = /^#[0-9a-f]{6}([0-9a-f]{2})?$/;
+  for (const [name, value] of Object.entries(NAMED_COLORS)) {
+    assert.equal(name, name.toLowerCase(), `key ${name} should be lowercase`);
+    assert.match(
+      value,
+      hex,
+      `${name} -> ${value} should be a lowercase hex string`,
+    );
+  }
+});
+
+test("NAMED_COLORS: a few known CSS Level 4 keywords resolve correctly", () => {
+  assert.equal(NAMED_COLORS.red, "#ff0000");
+  assert.equal(NAMED_COLORS.black, "#000000");
+  assert.equal(NAMED_COLORS.white, "#ffffff");
+  assert.equal(NAMED_COLORS.cornflowerblue, "#6495ed");
+  assert.equal(NAMED_COLORS.transparent, "#00000000");
+});
+
+test("NAMED_COLORS: covers the full CSS Color Module Level 4 named-color set", () => {
+  // Locks in the count so a future accidental edit (typo'd key, dropped
+  // entry) shows up as a failing test, not a silent gap. named.ts's own
+  // header comment documents the source: CSS Color Module Level 4 keywords.
+  assert.equal(Object.keys(NAMED_COLORS).length, 149);
+});
+
+test("hashString: deterministic, base36, and exactly 7 characters", () => {
+  const h1 = hashString("#3a7bd5");
+  const h2 = hashString("#3a7bd5");
+  assert.equal(h1, h2);
+  assert.equal(h1.length, 7);
+  assert.match(h1, /^[0-9a-z]{7}$/);
+});
+
+test("hashString: different input produces a different hash (no trivial collision)", () => {
+  assert.notEqual(hashString("#3a7bd5"), hashString("#3a7bd6"));
+  assert.notEqual(hashString(""), hashString("a"));
+});
+
+test("hashString: empty string still hashes to a well-formed 7-char id", () => {
+  assert.match(hashString(""), /^[0-9a-z]{7}$/);
 });

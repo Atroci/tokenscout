@@ -1,7 +1,7 @@
 // Pure tests for detectMotion (no browser). Run via tsx.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { detectMotion } from "../src/detect-motion.js";
+import { detectMotion, MOTION_GLOBALS } from "../src/detect-motion.js";
 
 const empty = {
   globals: [] as string[],
@@ -96,4 +96,18 @@ test("detectMotion: hasScrollSnap is forwarded to the report", () => {
   const r = detectMotion({ ...empty, hasScrollSnap: true });
   assert.equal(r.hasScrollSnap, true);
   assert.deepEqual(r.scrollLibraries, []);
+});
+
+test("MOTION_GLOBALS: a non-empty, de-duplicated list of window globals to probe", () => {
+  assert.ok(MOTION_GLOBALS.length > 0);
+  assert.equal(
+    new Set(MOTION_GLOBALS).size,
+    MOTION_GLOBALS.length,
+    "no duplicates",
+  );
+  // A couple of well-known real-world globals should be present, sanity-checking
+  // that this is actually wired to GLOBAL_LIBRARY/SCROLL_GLOBAL_LIBRARY and not
+  // an empty or stale list.
+  assert.ok(MOTION_GLOBALS.includes("gsap"));
+  assert.ok(MOTION_GLOBALS.includes("lenis"));
 });

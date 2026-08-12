@@ -3,6 +3,7 @@
 // that the ai-website-cloner-template records manually.
 
 import type { Page } from "playwright";
+import { assertPublicHttpUrl } from "./url-safety.js";
 
 const LAYOUT_PROPS = [
   "display",
@@ -96,7 +97,9 @@ function collectLayoutProps({
  * De-duplicates: if the same property changes at multiple narrower breakpoints,
  * only the narrowest (last) change is kept.
  */
-export function diffLayoutSnapshots(snapshots: LayoutSnapshot[]): LayoutChange[] {
+export function diffLayoutSnapshots(
+  snapshots: LayoutSnapshot[],
+): LayoutChange[] {
   if (snapshots.length < 2) return [];
 
   // Map<property, LayoutChange> — last write wins (narrowest breakpoint).
@@ -126,7 +129,8 @@ export function diffLayoutSnapshots(snapshots: LayoutSnapshot[]): LayoutChange[]
   }
 
   return Array.from(seen.values()).sort((a, b) => {
-    if (b.atBreakpoint !== a.atBreakpoint) return b.atBreakpoint - a.atBreakpoint;
+    if (b.atBreakpoint !== a.atBreakpoint)
+      return b.atBreakpoint - a.atBreakpoint;
     return a.property.localeCompare(b.property);
   });
 }
@@ -149,6 +153,7 @@ export async function diffBreakpoints(
     selectors.map((s) => [s, []]),
   );
 
+  await assertPublicHttpUrl(url);
   for (const bp of breakpoints) {
     await page.setViewportSize({ width: bp, height: viewportHeight });
     await page.goto(url, { waitUntil: "load" });
