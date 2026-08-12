@@ -10,6 +10,7 @@ import {
   buildDesignDNA,
   renderDesignDNAMarkdown,
   studySite,
+  DESIGN_DNA_VERSION,
   type SiteReport,
 } from "../dist/index.js";
 
@@ -198,10 +199,19 @@ test("studySite writes the versioned study bundle for a rendered fixture", async
     const savedMarkdown = await readFile(join(outDir, "design-dna.md"), "utf8");
 
     assert.equal(savedReport.url, fixture);
-    assert.equal(savedDNA.schemaVersion, "0.1");
-    assert.match(savedMarkdown, /# Design DNA v0\.1/);
+    // Tied to the exported constant, not a hardcoded literal, so a future
+    // version bump can't drift silently between the source and this test.
+    assert.equal(savedDNA.schemaVersion, DESIGN_DNA_VERSION);
+    assert.match(
+      savedMarkdown,
+      new RegExp(`# Design DNA v${DESIGN_DNA_VERSION}`),
+    );
     assert.deepEqual(result.designDNA.evidence.screenshots, []);
   } finally {
     await rm(outDir, { recursive: true, force: true });
   }
+});
+
+test("DESIGN_DNA_VERSION: a non-empty, dot-delimited version string", () => {
+  assert.match(DESIGN_DNA_VERSION, /^\d+\.\d+$/);
 });

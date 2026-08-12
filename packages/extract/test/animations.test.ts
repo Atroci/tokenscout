@@ -1,7 +1,10 @@
 // Pure normalization tests for reduceAnimationTokens(). No browser. Run via tsx.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { reduceAnimationTokens } from "../src/animations.js";
+import {
+  reduceAnimationTokens,
+  classifyProperties,
+} from "../src/animations.js";
 
 test("reduceAnimationTokens: parses s and ms to ascending ms, de-duplicated", () => {
   const tokens = reduceAnimationTokens({
@@ -188,6 +191,36 @@ test("reduceAnimationTokens: unknown properties default to paint, not layout", (
   assert.deepEqual(tokens.properties, {
     composited: [],
     paint: ["--custom-prop", "clip-path"],
+    layout: [],
+  });
+});
+
+test("classifyProperties: buckets compositor/paint/layout properties correctly", () => {
+  const result = classifyProperties(["transform", "color", "width"]);
+  assert.deepEqual(result.composited, ["transform"]);
+  assert.deepEqual(result.paint, ["color"]);
+  assert.deepEqual(result.layout, ["width"]);
+});
+
+test("classifyProperties: lower-cases, strips vendor prefixes, and de-duplicates", () => {
+  const result = classifyProperties([
+    "-webkit-transform",
+    "TRANSFORM",
+    "transform",
+  ]);
+  assert.deepEqual(result.composited, ["transform"]);
+});
+
+test("classifyProperties: an unknown property defaults to paint, not a claimed layout reflow", () => {
+  const result = classifyProperties(["--my-custom-prop"]);
+  assert.deepEqual(result.paint, ["--my-custom-prop"]);
+  assert.deepEqual(result.layout, []);
+});
+
+test("classifyProperties: empty input yields empty buckets", () => {
+  assert.deepEqual(classifyProperties([]), {
+    composited: [],
+    paint: [],
     layout: [],
   });
 });

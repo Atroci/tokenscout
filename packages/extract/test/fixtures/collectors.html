@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>tokenscout collectors fixture</title>
+    <!-- Fake Next.js markers: profilePage() should read this as a high-confidence React hit. -->
+    <script id="__NEXT_DATA__" type="application/json">{}</script>
+    <style>
+      body { margin: 0; font-size: 16px; height: 2400px; }
+
+      header.nav {
+        position: sticky;
+        top: 0;
+        background: #ffffff;
+        padding: 12px;
+      }
+
+      /* Native <details> disclosure: clicking <summary> toggles [open] with
+         zero JS, driving an observable click-state CSS change. */
+      details#disclosure .panel {
+        opacity: 0;
+        max-height: 0px;
+      }
+      details#disclosure[open] .panel {
+        opacity: 1;
+        max-height: 200px;
+      }
+
+      /* Scroll-driven state (via the tiny inline script below toggling
+         body.scrolled): filter changes once the user scrolls past 200px. */
+      #scroll-target {
+        opacity: 0.4;
+        filter: blur(4px);
+      }
+      body.scrolled #scroll-target {
+        opacity: 1;
+        filter: blur(0px);
+      }
+    </style>
+  </head>
+  <body id="__next">
+    <header class="nav">Sticky nav</header>
+
+    <h1>Collectors fixture heading</h1>
+    <p aria-label="intro paragraph">Single text node paragraph.</p>
+    <img src="./missing-local.png" alt="a decorative icon" />
+    <input placeholder="Search the fixture" />
+
+    <svg class="icon" viewBox="0 0 24 24" width="24" height="24">
+      <circle cx="12" cy="12" r="10" />
+    </svg>
+
+    <details id="disclosure">
+      <summary>Toggle panel</summary>
+      <div class="panel">Disclosure panel content</div>
+    </details>
+
+    <div style="height: 1600px"></div>
+    <div id="scroll-target">Scroll-revealed content</div>
+
+    <script>
+      // Native, framework-free scroll-state driver for captureScrollState().
+      window.addEventListener("scroll", () => {
+        document.body.classList.toggle("scrolled", window.scrollY > 200);
+      });
+    </script>
+  </body>
+</html>
