@@ -1,0 +1,22 @@
+# CODEOWNERS — who must review a change before it can merge.
+#
+# Paths listed here require an explicit review from @Atroci before merging,
+# enforced by this repository's branch protection ("require review from Code
+# Owners"). That review is a distinct action GitHub does not let the PR's own
+# author satisfy — not even from the same account, human or agent. That is
+# the actual protection: an agent operating under this account can open a PR
+# and push commits to it, but cannot make a PR touching these paths
+# mergeable by itself.
+#
+# Test suites and fixtures are the software's evidence that its behavior is
+# correct. A change here must not be able to quietly "fix" a failing test by
+# weakening or deleting the assertion instead of the underlying bug — see
+# docs/METHODOLOGY.md's review standard. Everything under every package's
+# test/ directory, including fixtures, is covered.
+/packages/*/test/          @Atroci
+
+# CI workflows and this file itself. Covering .github/ means a PR that tries
+# to edit CODEOWNERS (e.g. to narrow or remove this rule) is itself gated by
+# the CURRENT rule's reviewer — you cannot use a PR to remove the gate that
+# would otherwise apply to that same PR.
+/.github/                   @Atroci
